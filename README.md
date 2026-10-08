@@ -43,4 +43,4 @@ The live database contract tests and signed-in browser journey need an isolated 
 
 The existing Vercel project deploys this Next.js application. Set only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for Preview and Production, pointing to the intended isolated synthetic project. Verify a branch preview first: public page, unauthenticated redirect, RU/KK switching, and the full signed-in profile → specialist → booking → cancellation journey on mobile and desktop. Confirm that public sign-up is off and all data is fictional before promoting the reviewed commit to production.
 
-The previous static mockup files at the repository root are retained until the preview has been verified.
+The previous root-level static mockup has been retired after the Next.js Preview was verified.
