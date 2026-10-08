@@ -44,7 +44,7 @@ export async function signOutAction(): Promise<never> {
   if (!client) redirect('/demo?authError=signout');
   let signOutError = false;
   try {
-    const { error } = await client.auth.signOut();
+    const { error } = await client.auth.signOut({ scope: 'local' });
     signOutError = Boolean(error);
   } catch {
     signOutError = true;

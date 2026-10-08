@@ -24,6 +24,7 @@ test('sign-in and sign-out protect the route', async ({ page }) => {
   await page.getByRole('button', { name: /sign in|войти|кіру/i }).click();
   await expect(page).toHaveURL(/\/demo\/profile/);
   await page.getByRole('button', { name: /sign out|выйти|шығу/i }).click();
+  await expect(page).toHaveURL(/\/demo\/login/);
   await page.goto('/demo/profile');
   await expect(page).toHaveURL(/\/demo\/login/);
 });
