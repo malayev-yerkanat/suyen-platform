@@ -1,9 +1,11 @@
 import Link from 'next/link';
 
 import { requireDemoUser } from '@/lib/auth';
+import { getNextBookingForUser, type BookingSummary } from '@/lib/data/bookings';
 import { getProfileForUser, type ChildProfile } from '@/lib/data/profile';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
+import { formatAlmatyDateTime } from '@/lib/time';
 
 export default async function DemoDashboardPage({
   searchParams,
@@ -14,12 +16,22 @@ export default async function DemoDashboardPage({
   const locale = await getLocale();
   const { authError } = await searchParams;
   let profile: ChildProfile | null = null;
+  let nextBooking: BookingSummary | null = null;
   let profileReadFailed = false;
+  let bookingReadFailed = false;
   try {
     profile = await getProfileForUser(user.id);
   } catch (error) {
     console.error('Dashboard profile read failed', error);
     profileReadFailed = true;
+  }
+  if (profile) {
+    try {
+      nextBooking = await getNextBookingForUser(user.id);
+    } catch (error) {
+      console.error('Dashboard booking read failed', error);
+      bookingReadFailed = true;
+    }
   }
 
   return (
@@ -54,6 +66,25 @@ export default async function DemoDashboardPage({
             <Link href="/demo/profile" className="button button-primary">{translate(locale, 'dashboard.createProfile')}</Link>
             <Link href="/demo/specialists" className="button">{translate(locale, 'dashboard.browse')}</Link>
           </div>
+        </section>
+      )}
+      {profile && !profileReadFailed && (
+        <section className="dashboard-card" aria-labelledby="next-booking-title">
+          <h2 id="next-booking-title">{translate(locale, 'dashboard.nextBooking')}</h2>
+          {bookingReadFailed ? (
+            <p role="alert">{translate(locale, 'common.error')}</p>
+          ) : nextBooking ? (
+            <>
+              <p>{nextBooking.specialistName} · {locale === 'kk'
+                ? nextBooking.specialistRoleKk : nextBooking.specialistRole}</p>
+              <p>{formatAlmatyDateTime(nextBooking.startsAt, locale)}</p>
+              <Link href={`/demo/bookings/${nextBooking.id}`} className="button">
+                {translate(locale, 'booking.view')}
+              </Link>
+            </>
+          ) : (
+            <p>{translate(locale, 'dashboard.noBooking')}</p>
+          )}
         </section>
       )}
     </main>
