@@ -1,6 +1,6 @@
 # Süyen functional demo design
 
-**Status:** Design approved in conversation on 2026-10-08; written spec awaits review.
+**Status:** Design and written spec approved in conversation on 2026-10-08.
 
 ## Purpose
 
