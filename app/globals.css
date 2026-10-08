@@ -281,6 +281,57 @@ a { color: inherit; text-decoration-thickness: 0.06em; text-underline-offset: 0.
 .directory-skeleton-filters { min-height: 9rem; background: var(--teal-50); }
 .directory-skeleton-card { min-height: 20rem; background: linear-gradient(145deg, var(--surface), var(--teal-50)); }
 
+.booking-page { max-width: 58rem; }
+.booking-intro { max-width: 46rem; margin-bottom: clamp(2rem, 5vw, 3rem); }
+.booking-intro h1 {
+  margin: 1rem 0 0.65rem;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.055em;
+}
+.booking-intro > p:last-child { max-width: 58ch; margin: 0; color: var(--muted-text); }
+.booking-summary { margin-bottom: 1.5rem; }
+.booking-summary dl { display: grid; gap: 0; margin: 0; }
+.booking-summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 1.4fr);
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+  padding-block: 1.15rem;
+  border-bottom: 1px solid var(--hairline);
+}
+.booking-summary dl > div:first-child { padding-top: 0; }
+.booking-summary dl > div:last-child { border-bottom: 0; }
+.booking-summary dt { color: var(--muted-text); font-size: 0.9rem; font-weight: 600; }
+.booking-summary dd { min-width: 0; margin: 0; color: var(--surface-text); font-weight: 650; overflow-wrap: anywhere; }
+.booking-action-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hairline);
+}
+.booking-action-form .auth-error { flex-basis: 100%; margin: 0; }
+.booking-cancel { margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--hairline); }
+.booking-cancel > summary { width: max-content; list-style: none; cursor: pointer; }
+.booking-cancel > summary::-webkit-details-marker { display: none; }
+.booking-cancel-confirm {
+  max-width: 34rem;
+  margin-top: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--teal-200);
+  border-radius: 1.25rem;
+  background: var(--teal-50);
+}
+.booking-cancel-confirm p { margin: 0 0 0.65rem; }
+.booking-cancel-confirm p:first-child { font-weight: 700; }
+.booking-cancel-confirm p + p { color: var(--muted-text); font-size: 0.9rem; }
+.booking-cancel-confirm form { margin-top: 1.25rem; }
+.booking-cancel-confirm button { border-color: var(--error); background: var(--surface); color: var(--error); }
+.booking-cancel-confirm button:hover { background: #fff1ef; }
+
 @media (max-width: 767px) {
   .page-shell, .demo-shell { width: min(100% - 2rem, 82rem); }
   .demo-header { align-items: flex-start; }
@@ -288,6 +339,7 @@ a { color: inherit; text-decoration-thickness: 0.06em; text-underline-offset: 0.
   .demo-content { padding-top: 2rem; }
   .profile-fields { grid-template-columns: 1fr; }
   .directory-filters, .specialist-grid { grid-template-columns: 1fr; }
+  .booking-summary dl > div { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {
