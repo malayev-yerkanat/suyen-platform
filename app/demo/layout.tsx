@@ -30,7 +30,7 @@ export default async function DemoLayout({ children }: Readonly<{ children: Reac
           {signedIn && <Link href="/demo/profile">{translate(locale, 'nav.profile')}</Link>}
           {signedIn && <Link href="/demo/specialists">{translate(locale, 'nav.specialists')}</Link>}
           <LocaleSwitch locale={locale} />
-          {signedIn && <form action={signOutAction}><button type="submit">{translate(locale, 'nav.signOut')}</button></form>}
+          {signedIn && <form action={signOutAction}><button type="submit" className="button demo-nav__signout">{translate(locale, 'nav.signOut')}</button></form>}
         </nav>
       </header>
       {children}

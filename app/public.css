@@ -16,6 +16,7 @@
   align-items: center;
   gap: 0.7rem;
   width: fit-content;
+  min-height: 44px;
   color: var(--teal-950);
   font-size: 1.42rem;
   font-weight: 780;
@@ -59,7 +60,7 @@
   transition: color 240ms var(--ease-fluid);
 }
 
-.public-header__nav a:hover { color: var(--teal-700); }
+.public-header__nav a:hover { color: var(--teal-800); }
 .public-header .locale-switch { justify-self: end; }
 
 .public-page .public-hero {
@@ -68,7 +69,7 @@
   align-items: center;
   gap: clamp(2rem, 6vw, 7rem);
   min-height: min(760px, calc(100dvh - 90px));
-  padding-block: clamp(2.5rem, 6vw, 6rem) clamp(5rem, 9vw, 8.5rem);
+  padding-block: clamp(2.5rem, 4vw, 4.5rem) clamp(5rem, 9vw, 8.5rem);
 }
 
 .public-hero__content { position: relative; z-index: 1; max-width: 48rem; }
@@ -77,8 +78,8 @@
 .public-hero__eyebrow-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal-800); }
 
 .public-hero h1 {
-  margin: clamp(1.65rem, 3vw, 2.8rem) 0 1.6rem;
-  font-size: clamp(3.65rem, 6.65vw, 7.2rem);
+  margin: clamp(1.5rem, 2.2vw, 2.25rem) 0 1.4rem;
+  font-size: clamp(3.5rem, 5vw, 5.25rem);
   font-weight: 660;
   line-height: 0.99;
   letter-spacing: -0.077em;
@@ -266,7 +267,7 @@
   border-top: 1px solid var(--hairline);
 }
 
-.public-footer__brand { color: var(--teal-950); font-size: 1.3rem; font-weight: 780; letter-spacing: -0.055em; text-decoration: none; }
+.public-footer__brand { display: inline-flex; align-items: center; min-height: 44px; color: var(--teal-950); font-size: 1.3rem; font-weight: 780; letter-spacing: -0.055em; text-decoration: none; }
 .public-footer__brand span { color: var(--teal-700); }
 .public-footer p { max-width: 48ch; margin: 0; color: var(--muted-text); font-size: 0.82rem; text-align: right; }
 
