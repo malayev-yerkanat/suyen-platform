@@ -43,6 +43,7 @@ export function ProfileForm({ locale, initialProfile }: Props) {
   const firstFieldError = (Object.keys(state.errors) as (keyof ProfileFormValues)[])
     .map(fieldError)
     .find(Boolean);
+  const visibleError = state.formError || firstFieldError;
 
   return (
     <form className="surface profile-form" action={action} noValidate>
@@ -139,7 +140,11 @@ export function ProfileForm({ locale, initialProfile }: Props) {
           {pending ? translate(locale, 'profile.saving') : translate(locale, 'profile.save')}
         </button>
       </div>
-      <p className="form-status" aria-live="polite" role={state.status === 'error' ? 'alert' : 'status'}>
+      <p
+        className={`form-status${visibleError ? ' form-status--error' : ''}`}
+        aria-live="polite"
+        role={visibleError ? 'alert' : 'status'}
+      >
         {savedValuesMatch && translate(locale, 'profile.saved')}
         {state.formError && translate(locale, state.formError)}
         {!state.formError && firstFieldError && translate(locale, firstFieldError)}

@@ -35,10 +35,10 @@ export default async function DemoDashboardPage({
   }
 
   return (
-    <main className="demo-content">
+    <main className="demo-content dashboard-page">
       <section className="dashboard-intro">
         {authError === 'signout' && <p role="alert" className="auth-error">{translate(locale, 'common.error')}</p>}
-        <p className="page-lead">{translate(locale, 'nav.demo')}</p>
+        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'demo.title')}</h1>
         <p>{translate(locale, 'demo.subtitle')}</p>
         <p>{translate(locale, 'demo.sharedAccount')}</p>
