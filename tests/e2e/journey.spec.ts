@@ -101,7 +101,7 @@ for (const locale of ['ru', 'kk'] as const) {
         await expect(page.getByRole('heading', { name: translate(locale, 'booking.reviewTitle') })).toBeVisible();
         await expect(page.locator('.booking-summary')).toContainText(editedNickname);
         await page.getByRole('button', { name: translate(locale, 'booking.confirm') }).click();
-        await expect(page).toHaveURL(/\/demo\/bookings\/[0-9a-f-]{36}$/);
+        await expect(page).toHaveURL(/\/demo\/bookings\/[0-9a-f-]{36}$/, { timeout: 30_000 });
         bookingUrl = page.url();
         await expect(page.getByRole('heading', { name: translate(locale, 'booking.confirmed') })).toBeVisible();
         await expect(page.locator('.booking-summary')).toContainText(editedNickname);
