@@ -47,7 +47,6 @@ export function ProfileForm({ locale, initialProfile }: Props) {
 
   return (
     <form className="surface profile-form" action={action} noValidate>
-      <p className="form-security-note">{translate(locale, 'demo.banner')}</p>
       <div className="profile-fields">
         <div className="form-field">
           <label htmlFor="profile-nickname">{translate(locale, 'profile.nickname')}</label>

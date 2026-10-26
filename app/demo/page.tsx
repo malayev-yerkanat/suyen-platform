@@ -1,3 +1,4 @@
+import { MotionScene } from '@/components/MotionScene';
 import Link from 'next/link';
 
 import { requireDemoUser } from '@/lib/auth';
@@ -35,7 +36,7 @@ export default async function DemoDashboardPage({
   }
 
   return (
-    <main className="demo-content dashboard-page">
+    <MotionScene><main className="demo-content dashboard-page">
       <section className="dashboard-intro">
         {authError === 'signout' && <p role="alert" className="auth-error">{translate(locale, 'common.error')}</p>}
         <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
@@ -44,12 +45,12 @@ export default async function DemoDashboardPage({
         <p>{translate(locale, 'demo.sharedAccount')}</p>
       </section>
       {profileReadFailed ? (
-        <section className="dashboard-card" role="alert">
+        <section data-motion="item" className="dashboard-card" role="alert">
           <p>{translate(locale, 'common.error')}</p>
           <Link href="/demo" className="button button-primary">{translate(locale, 'common.retry')}</Link>
         </section>
       ) : profile ? (
-        <section className="dashboard-card" aria-labelledby="profile-title">
+        <section data-motion="item" className="dashboard-card" aria-labelledby="profile-title">
           <h2 id="profile-title">{translate(locale, 'dashboard.profile')}</h2>
           <p>{profile.nickname}</p>
           <p>{translate(locale, `profile.age.${profile.ageBand}`)} · {translate(locale, `support.${profile.supportArea}`)}</p>
@@ -59,7 +60,7 @@ export default async function DemoDashboardPage({
           </div>
         </section>
       ) : (
-        <section className="dashboard-card" aria-labelledby="start-title">
+        <section data-motion="item" className="dashboard-card" aria-labelledby="start-title">
           <h2 id="start-title">{translate(locale, 'dashboard.greeting')}</h2>
           <p>{translate(locale, 'dashboard.emptyProfile')}</p>
           <div className="dashboard-actions">
@@ -69,7 +70,7 @@ export default async function DemoDashboardPage({
         </section>
       )}
       {profile && !profileReadFailed && (
-        <section className="dashboard-card" aria-labelledby="next-booking-title">
+        <section data-motion="item" className="dashboard-card" aria-labelledby="next-booking-title">
           <h2 id="next-booking-title">{translate(locale, 'dashboard.nextBooking')}</h2>
           {bookingReadFailed ? (
             <p role="alert">{translate(locale, 'common.error')}</p>
@@ -83,10 +84,19 @@ export default async function DemoDashboardPage({
               </Link>
             </>
           ) : (
-            <p>{translate(locale, 'dashboard.noBooking')}</p>
+            <>
+              <p>{translate(locale, 'dashboard.noBooking')}</p>
+              <Link href="/demo/specialists" className="button button-primary">{translate(locale, 'dashboard.browse')}</Link>
+            </>
           )}
+          <div className="dashboard-card__footer">
+            <Link href="/demo/bookings">{translate(locale, 'nav.bookings')}</Link>
+          </div>
         </section>
       )}
-    </main>
+      <footer className="dashboard-footer">
+        <Link href="/demo/feedback?from=dashboard">{translate(locale, 'feedback.link')}</Link>
+      </footer>
+    </main></MotionScene>
   );
 }

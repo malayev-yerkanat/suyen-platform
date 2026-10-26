@@ -12,7 +12,7 @@ export function PublicProcess({ locale }: { locale: Locale }) {
       </div>
       <ol className="public-process__steps">
         {steps.map((step) => (
-          <li className="public-process__step" key={step}>
+          <li data-motion="item" className="public-process__step" key={step}>
             <span className="public-process__number" aria-hidden="true">0{step}</span>
             <div>
               <h3>{translate(locale, `public.step${step}Title`)}</h3>

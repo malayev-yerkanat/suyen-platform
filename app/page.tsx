@@ -1,3 +1,4 @@
+import { MotionScene } from '@/components/MotionScene';
 import { PublicHeader } from '@/components/PublicHeader';
 import { PublicHero } from '@/components/PublicHero';
 import { PublicProcess } from '@/components/PublicProcess';
@@ -12,10 +13,10 @@ export default async function HomePage() {
   return (
     <div className="public-page" id="top">
       <PublicHeader locale={locale} />
-      <main id="main-content">
+      <MotionScene><main id="main-content">
         <PublicHero locale={locale} />
         <PublicProcess locale={locale} />
-      </main>
+      </main></MotionScene>
       <footer className="public-footer page-shell">
         <a className="public-footer__brand" href="#top" aria-label="Süyen">Süyen<span aria-hidden="true">.</span></a>
         <p>{translate(locale, 'public.disclaimer')}</p>

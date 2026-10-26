@@ -36,7 +36,7 @@ async function cancelIfConfirmed(page: Page, bookingUrl: string, locale: Locale)
   await page.goto(bookingUrl);
   if (await page.getByRole('heading', { name: translate(locale, 'booking.cancelled') }).isVisible()) return;
   await page.locator('.booking-cancel summary').click();
-  await page.getByRole('button', { name: translate(locale, 'common.yes') }).click();
+  await page.locator('.booking-cancel form').getByRole('button', { name: translate(locale, 'booking.cancel'), exact: true }).click();
   await expect(page.getByRole('heading', { name: translate(locale, 'booking.cancelled') })).toBeVisible();
 }
 

@@ -1,5 +1,14 @@
+import { ruNavigation, kkNavigation } from './navigation';
+import { ruSpecialists, kkSpecialists } from './specialists';
+import { ruAppointments, kkAppointments } from './appointments';
+import { ruFeedback, kkFeedback } from './feedback';
+
 /** Every user-facing label in the demo has a key in both languages. */
 const ru = {
+  ...ruNavigation,
+  ...ruSpecialists,
+  ...ruAppointments,
+  ...ruFeedback,
   'common.brand': 'Süyen',
   'common.language': 'Язык',
   'common.russian': 'Русский',
@@ -101,6 +110,8 @@ const ru = {
   'booking.child': 'Профиль ребёнка',
   'booking.dateTime': 'Дата и время',
   'booking.timeZone': 'Часовой пояс',
+  'booking.almatyTime': 'Время Алматы',
+  'booking.keep': 'Оставить запись',
   'booking.confirm': 'Подтвердить запись',
   'booking.confirming': 'Подтверждаем…',
   'booking.confirmed': 'Запись подтверждена',
@@ -140,6 +151,10 @@ export type TranslationKey = keyof typeof ru;
 export type Locale = 'ru' | 'kk';
 
 const kk = {
+  ...kkNavigation,
+  ...kkSpecialists,
+  ...kkAppointments,
+  ...kkFeedback,
   'common.brand': 'Süyen',
   'common.language': 'Тіл',
   'common.russian': 'Русский',
@@ -241,6 +256,8 @@ const kk = {
   'booking.child': 'Бала профилі',
   'booking.dateTime': 'Күні мен уақыты',
   'booking.timeZone': 'Уақыт белдеуі',
+  'booking.almatyTime': 'Алматы уақыты',
+  'booking.keep': 'Жазылымды сақтау',
   'booking.confirm': 'Жазылымды растау',
   'booking.confirming': 'Расталып жатыр…',
   'booking.confirmed': 'Жазылым расталды',

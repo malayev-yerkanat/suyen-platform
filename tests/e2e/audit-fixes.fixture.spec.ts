@@ -1,0 +1,45 @@
+import { expect, test } from '@playwright/test';
+
+test.skip(process.env.TEST_DEMO_EMAIL !== 'fixture@suyen.example', 'Requires isolated fixture config');
+test('filters stay aligned after reset and browser history; header follows visual keyboard order', async ({ page, request }) => {
+  await request.post('http://127.0.0.1:54329/__fixture/reset');
+  await page.goto('/demo/login');
+  await page.getByLabel('Электронная почта').fill('fixture@suyen.example');
+  await page.getByLabel('Пароль').fill('fixture-password');
+  await page.getByRole('button', { name: 'Войти', exact: true }).click();
+  await expect(page).toHaveURL(/\/demo$/);
+  await page.goto('/demo/specialists');
+  await page.getByRole('combobox', { name: 'Направление', exact: true }).selectOption('neuropsychology');
+  await page.getByRole('combobox', { name: 'Язык сессии' }).selectOption('kk');
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Показать результаты' }).click();
+  await expect(page.getByRole('heading', { name: 'По этим фильтрам специалисты не найдены.' })).toBeVisible();
+  await page.getByRole('link', { name: 'Сбросить фильтры' }).first().click();
+  await expect(page.locator('article')).toHaveCount(2);
+  await expect(page.getByRole('combobox', { name: 'Направление', exact: true })).toHaveValue('');
+  await expect(page.getByRole('combobox', { name: 'Язык сессии' })).toHaveValue('');
+  await expect(page.getByRole('checkbox')).not.toBeChecked();
+  await page.goBack();
+  await expect(page.getByRole('combobox', { name: 'Направление', exact: true })).toHaveValue('neuropsychology');
+  await expect(page.getByRole('checkbox')).toBeChecked();
+  await page.goForward();
+  await expect(page.getByRole('combobox', { name: 'Направление', exact: true })).toHaveValue('');
+  await page.getByRole('combobox', { name: 'Направление', exact: true }).selectOption('neuropsychology');
+  await page.getByRole('checkbox').check();
+  await page.getByRole('link', { name: 'Сбросить фильтры' }).first().click();
+  await expect(page.getByRole('combobox', { name: 'Направление', exact: true })).toHaveValue('');
+  await expect(page.getByRole('checkbox')).not.toBeChecked();
+  await expect(page).toHaveTitle('Специалисты · Süyen');
+  await page.getByRole('link', { name: 'Перейти к содержимому' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#demo-main')).toBeFocused();
+  await page.locator('header a[href="/"]').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'RU', exact: true })).toBeFocused();
+  const positions = await page.locator('.demo-header').evaluate(header => {
+    const language = header.querySelector('button[aria-pressed]')!;
+    const overview = header.querySelector('a[href="/demo"]')!;
+    return { language: language.getBoundingClientRect().left, overview: overview.getBoundingClientRect().left };
+  });
+  expect(positions.language).toBeLessThan(positions.overview);
+});

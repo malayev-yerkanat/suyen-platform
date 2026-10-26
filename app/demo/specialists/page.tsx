@@ -1,3 +1,4 @@
+import { MotionScene } from '@/components/MotionScene';
 import Link from 'next/link';
 
 import { DirectoryFilters } from '@/app/demo/specialists/DirectoryFilters';
@@ -6,7 +7,7 @@ import { directoryEmptyState, filterSpecialists, parseDirectoryFilters } from '@
 import { requireDemoUser } from '@/lib/auth';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { formatAlmatyDateTime } from '@/lib/time';
+import { formatAlmatyDateTime, formatAlmatyDate, formatAlmatyTime } from '@/lib/time';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -19,11 +20,11 @@ export default async function SpecialistsPage({ searchParams }: Props) {
     directory = await getSpecialistDirectory();
   } catch {
     return (
-      <main className="demo-content">
+      <MotionScene><main className="demo-content">
         <h1>{translate(locale, 'directory.title')}</h1>
         <p role="alert">{translate(locale, 'common.error')}</p>
         <Link className="button" href="/demo/specialists">{translate(locale, 'common.retry')}</Link>
-      </main>
+      </main></MotionScene>
     );
   }
 
@@ -31,8 +32,8 @@ export default async function SpecialistsPage({ searchParams }: Props) {
   const emptyState = directoryEmptyState(directory, filters);
 
   return (
-    <main className="demo-content">
-      <header className="directory-intro">
+    <MotionScene><main className="demo-content">
+      <header data-motion="item" className="directory-intro">
         <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'directory.title')}</h1>
         <p>{translate(locale, 'directory.subtitle')}</p>
@@ -50,7 +51,7 @@ export default async function SpecialistsPage({ searchParams }: Props) {
       {matches.length > 0 && (
         <div className="specialist-grid">
           {matches.map((specialist) => (
-            <article className="specialist-card" key={specialist.id}>
+            <article data-motion="item" className="specialist-card" key={specialist.id}>
               <p className="eyebrow">{translate(locale, 'directory.sampleProfile')}</p>
               <h2>{specialist.displayName}</h2>
               <p>{locale === 'kk' ? specialist.roleKk : specialist.role}</p>
@@ -59,25 +60,32 @@ export default async function SpecialistsPage({ searchParams }: Props) {
                 translate(locale, language === 'ru' ? 'common.russian' : 'common.kazakh'),
               ).join(' · ')}</p>
               <p>{locale === 'kk' ? specialist.descriptionKk : specialist.description}</p>
+              <Link className="button" href={`/demo/specialists/${encodeURIComponent(specialist.id)}`}>
+                {translate(locale, 'specialist.view')}
+              </Link>
               <h3>{translate(locale, 'directory.available')}</h3>
               {specialist.slots.length === 0 ? (
                 <p>{translate(locale, 'directory.noSlots')}</p>
               ) : (
-                <ul className="slot-list">
-                  {specialist.slots.map((slot) => (
+                <>
+                <p className="slot-timezone">{translate(locale, 'specialist.timezone')}</p>
+                <ul className="slot-list slot-list-compact">
+                  {specialist.slots.slice(0, 3).map((slot) => (
                     <li key={slot.id}>
-                      <Link href={`/demo/bookings/new?slot=${encodeURIComponent(slot.id)}`}>
-                        <span>{formatAlmatyDateTime(slot.startsAt, locale)}</span>
-                        <span>{translate(locale, 'directory.bookSlot')}</span>
+                      <Link href={`/demo/bookings/new?slot=${encodeURIComponent(slot.id)}`} aria-label={`${translate(locale, 'directory.bookSlot')}: ${formatAlmatyDateTime(slot.startsAt, locale)}`}>
+                        <span>{formatAlmatyDate(slot.startsAt, locale)}</span>
+                        <span>{formatAlmatyTime(slot.startsAt, locale)}</span>
                       </Link>
                     </li>
                   ))}
                 </ul>
+                {specialist.slots.length > 3 && <Link className="button" href={`/demo/specialists/${encodeURIComponent(specialist.id)}#availability`}>{translate(locale, 'specialist.allTimes')}</Link>}
+                </>
               )}
             </article>
           ))}
         </div>
       )}
-    </main>
+    </main></MotionScene>
   );
 }

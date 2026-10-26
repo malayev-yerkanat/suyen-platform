@@ -29,3 +29,10 @@ test('clearing a field error removes the empty error status', () => {
   expect(screen.queryByRole('alert')).toBeNull();
   expect(screen.getByRole('status').className).not.toContain('form-status--error');
 });
+
+
+test('keeps field-specific fictional guidance without repeating the global demo warning', () => {
+  const { container } = render(<ProfileForm locale="ru" initialProfile={null} />);
+  expect(container.querySelector('.form-security-note')).toBeNull();
+  expect(container.querySelector('#nickname-hint')?.textContent).toBeTruthy();
+});

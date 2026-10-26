@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import { demoMetadata } from '@/lib/demo-metadata';
+
+export const generateMetadata = () => demoMetadata('dashboard');
 
 import { signOutAction } from '@/app/demo/login/actions';
 import { DemoBanner } from '@/components/DemoBanner';
+import { DemoNavigation } from '@/components/DemoNavigation';
 import { LocaleSwitch } from '@/components/LocaleSwitch';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
@@ -22,18 +26,19 @@ export default async function DemoLayout({ children }: Readonly<{ children: Reac
 
   return (
     <div className="demo-shell">
+      <a className="skip-link" href="#demo-main">{translate(locale, 'nav.skipToContent')}</a>
       <DemoBanner locale={locale} />
       <header className="demo-header">
         <Link href="/" className="demo-brand">{translate(locale, 'common.brand')}</Link>
-        <nav className="demo-nav" aria-label={translate(locale, 'nav.demo')}>
-          {signedIn && <Link href="/demo">{translate(locale, 'nav.dashboard')}</Link>}
-          {signedIn && <Link href="/demo/profile">{translate(locale, 'nav.profile')}</Link>}
-          {signedIn && <Link href="/demo/specialists">{translate(locale, 'nav.specialists')}</Link>}
-          <LocaleSwitch locale={locale} />
-          {signedIn && <form action={signOutAction}><button type="submit" className="button demo-nav__signout">{translate(locale, 'nav.signOut')}</button></form>}
-        </nav>
+        {signedIn ? (
+          <DemoNavigation
+            locale={locale}
+            localeSwitch={<LocaleSwitch locale={locale} />}
+            signOut={<form action={signOutAction}><button type="submit" className="button demo-nav__signout">{translate(locale, 'nav.signOut')}</button></form>}
+          />
+        ) : <LocaleSwitch locale={locale} />}
       </header>
-      {children}
+      <div id="demo-main" tabIndex={-1}>{children}</div>
     </div>
   );
 }
