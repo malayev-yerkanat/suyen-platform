@@ -1,3 +1,4 @@
+import { StatusMark } from '@/components/StatusMark';
 import Link from 'next/link';
 
 import { CancelBooking } from '@/app/demo/bookings/CancelBooking';
@@ -5,7 +6,7 @@ import { requireDemoUser } from '@/lib/auth';
 import { canCancelBooking, getBookingForUser } from '@/lib/data/bookings';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { DISPLAY_TIME_ZONE, formatAlmatyDateTime } from '@/lib/time';
+import { formatBookingSession } from '@/lib/time';
 import { bookingIdSchema } from '@/lib/validation/booking';
 
 type Props = { params: Promise<{ id: string }> };
@@ -50,6 +51,7 @@ export default async function BookingDetailPage({ params }: Props) {
   return (
     <main className="demo-content booking-page">
       <header className="booking-intro">
+        <StatusMark variant={booking.status === 'cancelled' ? 'cancelled' : 'success'} />
         <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, booking.status === 'confirmed'
           ? 'booking.confirmed' : 'booking.cancelled')}</h1>
@@ -64,17 +66,22 @@ export default async function BookingDetailPage({ params }: Props) {
               ? booking.specialistRoleKk : booking.specialistRole}</dd></div>
           <div><dt>{translate(locale, 'booking.child')}</dt><dd>{booking.childNickname}</dd></div>
           <div><dt>{translate(locale, 'booking.dateTime')}</dt>
-            <dd>{formatAlmatyDateTime(booking.startsAt, locale)}</dd></div>
-          <div><dt>{translate(locale, 'booking.timeZone')}</dt><dd>{DISPLAY_TIME_ZONE}</dd></div>
+            <dd>{formatBookingSession(booking.startsAt, booking.endsAt, locale)}</dd></div>
         </dl>
         {canCancel && <CancelBooking bookingId={booking.id} locale={locale} />}
         {booking.status === 'confirmed' && !canCancel && (
           <p>{translate(locale, 'booking.cancelUnavailable')}</p>
         )}
       </section>
-      <Link className="button" href="/demo/specialists">
-        {translate(locale, 'booking.backToDirectory')}
-      </Link>
+      <div className="dashboard-actions">
+        <Link className="button" href="/demo/specialists">
+          {translate(locale, 'booking.backToDirectory')}
+        </Link>
+        <Link className="button" href="/demo/bookings">{translate(locale, 'nav.bookings')}</Link>
+        <Link className="button" href={`/demo/feedback?from=${booking.status === 'cancelled' ? 'cancellation' : 'confirmation'}`}>
+          {translate(locale, 'feedback.link')}
+        </Link>
+      </div>
     </main>
   );
 }

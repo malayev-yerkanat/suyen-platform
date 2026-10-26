@@ -5,7 +5,7 @@ import { translate, type Locale } from '@/lib/i18n/catalog';
 export function PublicHero({ locale }: { locale: Locale }) {
   return (
     <section className="public-hero page-shell" aria-labelledby="public-title">
-      <div className="public-hero__content">
+      <div data-motion="item" className="public-hero__content">
         <span className="eyebrow public-hero__eyebrow"><span className="public-hero__eyebrow-dot" aria-hidden="true" />{translate(locale, 'public.eyebrow')}</span>
         <h1 id="public-title">{translate(locale, 'public.title')}</h1>
         <p className="public-hero__description">{translate(locale, 'public.subtitle')}</p>
@@ -17,7 +17,7 @@ export function PublicHero({ locale }: { locale: Locale }) {
           <span className="public-hero__note"><span aria-hidden="true" />{translate(locale, 'public.demoNote')}</span>
         </div>
       </div>
-      <div className="public-hero__visual" aria-hidden="true">
+      <div data-motion="item" className="public-hero__visual" aria-hidden="true">
         <div className="public-hero__visual-top"><span>SÜYEN</span><span>01 / 03</span></div>
         <div className="public-hero__orbit public-hero__orbit--outer" />
         <div className="public-hero__orbit public-hero__orbit--middle" />

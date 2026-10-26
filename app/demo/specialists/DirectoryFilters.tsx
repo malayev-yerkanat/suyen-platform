@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 import { SUPPORT_AREAS, type DirectoryFilters } from '@/lib/filters';
@@ -7,7 +9,7 @@ type Props = { locale: Locale; filters: DirectoryFilters };
 
 export function DirectoryFilters({ locale, filters }: Props) {
   return (
-    <form className="directory-filters" action="/demo/specialists" method="get">
+    <form key={`${filters.area ?? ''}:${filters.language ?? ''}:${filters.availableOnly}`} className="directory-filters" action="/demo/specialists" method="get">
       <label>
         <span>{translate(locale, 'directory.filter.area')}</span>
         <select name="area" defaultValue={filters.area ?? ''}>
@@ -33,7 +35,7 @@ export function DirectoryFilters({ locale, filters }: Props) {
         <button className="button button-primary" type="submit">
           {translate(locale, 'directory.filter.apply')}
         </button>
-        <Link href="/demo/specialists" className="button">
+        <Link href="/demo/specialists" className="button" onClick={(event) => event.currentTarget.closest('form')?.reset()}>
           {translate(locale, 'directory.filter.clear')}
         </Link>
       </div>

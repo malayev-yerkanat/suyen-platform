@@ -1,5 +1,7 @@
 'use client';
 
+import { MotionButton } from '@/components/MotionButton';
+
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
@@ -11,9 +13,9 @@ const initialState: BookingActionState = { status: 'idle' };
 function ConfirmButton({ locale }: { locale: Locale }) {
   const { pending } = useFormStatus();
   return (
-    <button className="button button-primary" type="submit" disabled={pending}>
+    <MotionButton className="button button-primary" type="submit" disabled={pending}>
       {translate(locale, pending ? 'booking.confirming' : 'booking.confirm')}
-    </button>
+    </MotionButton>
   );
 }
 

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:fixture": "playwright test -c playwright.fixture.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -34,6 +35,7 @@
     "@fontsource-variable/onest": "^5.3.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
+    "motion": "^14.6.0",
     "next": "16.4.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

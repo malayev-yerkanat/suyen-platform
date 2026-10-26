@@ -6,7 +6,7 @@ import { getSlotForReview } from '@/lib/data/bookings';
 import { getProfileForUser } from '@/lib/data/profile';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { DISPLAY_TIME_ZONE, formatAlmatyDateTime } from '@/lib/time';
+import { formatBookingSession } from '@/lib/time';
 import { bookingIdSchema } from '@/lib/validation/booking';
 
 type Props = { searchParams: Promise<{ slot?: string | string[] }> };
@@ -83,8 +83,7 @@ export default async function NewBookingPage({ searchParams }: Props) {
             <dd>{slot.specialistName} · {locale === 'kk' ? slot.specialistRoleKk : slot.specialistRole}</dd></div>
           <div><dt>{translate(locale, 'booking.child')}</dt><dd>{profile.nickname}</dd></div>
           <div><dt>{translate(locale, 'booking.dateTime')}</dt>
-            <dd>{formatAlmatyDateTime(slot.startsAt, locale)}</dd></div>
-          <div><dt>{translate(locale, 'booking.timeZone')}</dt><dd>{DISPLAY_TIME_ZONE}</dd></div>
+            <dd>{formatBookingSession(slot.startsAt, slot.endsAt, locale)}</dd></div>
         </dl>
         <BookingReview profileId={profile.id} slotId={slot.id} locale={locale} />
       </section>

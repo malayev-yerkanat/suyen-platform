@@ -21,24 +21,36 @@ const slotRow = z.object({
   specialist_id: z.guid(),
   starts_at: z.string().refine((value) => !Number.isNaN(Date.parse(value))),
   ends_at: z.string().refine((value) => !Number.isNaN(Date.parse(value))),
-});
+}).refine((slot) => Date.parse(slot.ends_at) > Date.parse(slot.starts_at));
 
 /** Fetch only public-facing fixture fields; signed-in RLS still applies. */
 export async function getSpecialistDirectory(): Promise<DirectorySpecialist[]> {
+  return fetchSpecialists();
+}
+
+/** Invalid, missing and inactive profiles are not exposed. */
+export async function getSpecialistById(id: string): Promise<DirectorySpecialist | null> {
+  if (!z.guid().safeParse(id).success) return null;
+  return (await fetchSpecialists(id))[0] ?? null;
+}
+
+async function fetchSpecialists(id?: string): Promise<DirectorySpecialist[]> {
   const client = await createServerSupabaseClient();
   if (!client) throw new Error('Directory is unavailable');
 
+  const specialistsQuery = client.from('specialists')
+    .select('id,display_name,role,role_kk,support_area,languages,description,description_kk')
+    .eq('active', true)
+    .order('display_name');
+  const slotsQuery = client.from('slots')
+    .select('id,specialist_id,starts_at,ends_at')
+    .eq('active', true)
+    .eq('reserved', false)
+    .gt('starts_at', new Date().toISOString())
+    .order('starts_at');
   const [specialistResult, slotResult] = await Promise.all([
-    client.from('specialists')
-      .select('id,display_name,role,role_kk,support_area,languages,description,description_kk')
-      .eq('active', true)
-      .order('display_name'),
-    client.from('slots')
-      .select('id,specialist_id,starts_at,ends_at')
-      .eq('active', true)
-      .eq('reserved', false)
-      .gt('starts_at', new Date().toISOString())
-      .order('starts_at'),
+    id ? specialistsQuery.eq('id', id) : specialistsQuery,
+    id ? slotsQuery.eq('specialist_id', id) : slotsQuery,
   ]);
 
   if (specialistResult.error || slotResult.error) throw new Error('Directory is unavailable');

@@ -39,6 +39,7 @@ export async function reserveBookingAction(
     if (error instanceof BookingFailure) {
       if (error.kind === 'conflict') {
         revalidatePath('/demo/specialists');
+        revalidatePath('/demo/bookings');
         return { status: 'error', error: 'booking.conflict' };
       }
       if (error.kind === 'profile_not_found') {
@@ -50,6 +51,7 @@ export async function reserveBookingAction(
   }
 
   revalidatePath('/demo');
+  revalidatePath('/demo/bookings');
   revalidatePath('/demo/specialists');
   redirect(`/demo/bookings/${bookingId}`);
 }
@@ -80,6 +82,7 @@ export async function cancelBookingAction(
   }
 
   revalidatePath('/demo');
+  revalidatePath('/demo/bookings');
   revalidatePath('/demo/specialists');
   revalidatePath(`/demo/bookings/${bookingId}`);
   redirect(`/demo/bookings/${bookingId}`);

@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   return (
     <main className="demo-content profile-page">
       <div className="profile-intro">
-        <p className="page-lead">{translate(locale, 'nav.demo')}</p>
+        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'profile.title')}</h1>
         <p>{translate(locale, 'profile.subtitle')}</p>
       </div>

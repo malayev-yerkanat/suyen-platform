@@ -55,6 +55,7 @@ describe('booking server actions', () => {
     expect(mocks.requireDemoUser).toHaveBeenCalledWith('/demo/bookings/new');
     expect(mocks.reserveSlotForUser).toHaveBeenCalledWith('session-owner', profileId, slotId);
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/specialists');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/bookings');
     expect(mocks.redirect).toHaveBeenCalledWith(`/demo/bookings/${bookingId}`);
   });
 
@@ -69,6 +70,7 @@ describe('booking server actions', () => {
     const result = await reserveBookingAction(idle, form({ profileId, slotId }));
     expect(result).toEqual({ status: 'error', error: 'booking.conflict' });
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/specialists');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/bookings');
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
@@ -83,6 +85,7 @@ describe('booking server actions', () => {
     expect(mocks.requireDemoUser).toHaveBeenCalledWith(`/demo/bookings/${bookingId}`);
     expect(mocks.cancelBookingForUser).toHaveBeenCalledWith('session-owner', bookingId);
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/specialists');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/demo/bookings');
     expect(mocks.redirect).toHaveBeenCalledWith(`/demo/bookings/${bookingId}`);
   });
 

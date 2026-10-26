@@ -2,6 +2,8 @@ import 'server-only';
 
 import { z } from 'zod';
 
+import { filterBookingHistory } from '@/lib/booking-history';
+
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 const bookingRow = z.object({
@@ -36,6 +38,7 @@ export type BookingSummary = {
   id: string;
   status: BookingStatus;
   childNickname: string;
+  specialistId: string;
   specialistName: string;
   specialistRole: string;
   specialistRoleKk: string;
@@ -161,6 +164,7 @@ async function enrichBooking(
     id: booking.id,
     status: booking.status,
     childNickname: profile.nickname,
+    specialistId: specialist.id,
     specialistName: specialist.display_name,
     specialistRole: specialist.role,
     specialistRoleKk: specialist.role_kk,
@@ -178,16 +182,49 @@ export async function getBookingForUser(ownerId: string, bookingId: string): Pro
   return data ? enrichBooking(bookingRow.parse(data)) : null;
 }
 
-export async function getNextBookingForUser(ownerId: string): Promise<BookingSummary | null> {
+export async function getBookingsForUser(ownerId: string): Promise<BookingSummary[]> {
   const client = await clientOrThrow();
   const { data, error } = await client.from('bookings')
     .select('id,owner_id,child_profile_id,slot_id,status')
-    .eq('owner_id', ownerId).eq('status', 'confirmed');
+    .eq('owner_id', ownerId);
   if (error) throw new Error('Booking details unavailable');
   const bookings = bookingRow.array().parse(data);
-  if (bookings.length === 0) return null;
-  const summaries = await Promise.all(bookings.map(enrichBooking));
-  return summaries
-    .filter((booking) => new Date(booking.startsAt).getTime() > Date.now())
-    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))[0] ?? null;
+  if (bookings.some((booking) => booking.owner_id !== ownerId)) {
+    throw new Error('Booking details unavailable');
+  }
+  if (bookings.length === 0) return [];
+  const [profileResult, slotResult] = await Promise.all([
+    client.from('child_profiles').select('id,nickname').eq('owner_id', ownerId)
+      .in('id', [...new Set(bookings.map((booking) => booking.child_profile_id))]),
+    client.from('slots').select('id,starts_at,ends_at,active,reserved,specialist_id')
+      .in('id', [...new Set(bookings.map((booking) => booking.slot_id))]),
+  ]);
+  if (profileResult.error || slotResult.error) throw new Error('Booking details unavailable');
+  const profiles = profileRow.array().parse(profileResult.data);
+  const slots = slotRow.array().parse(slotResult.data);
+  if (slots.length === 0) throw new Error('Booking details unavailable');
+  const specialistResult = await client.from('specialists')
+    .select('id,display_name,role,role_kk,active')
+    .in('id', [...new Set(slots.map((slot) => slot.specialist_id))]);
+  if (specialistResult.error) throw new Error('Booking details unavailable');
+  const specialists = specialistRow.array().parse(specialistResult.data);
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+  const slotById = new Map(slots.map((slot) => [slot.id, slot]));
+  const specialistById = new Map(specialists.map((specialist) => [specialist.id, specialist]));
+  return bookings.map((booking) => {
+    const profile = profileById.get(booking.child_profile_id);
+    const slot = slotById.get(booking.slot_id);
+    const specialist = slot && specialistById.get(slot.specialist_id);
+    if (!profile || !slot || !specialist) throw new Error('Booking details unavailable');
+    return {
+      id: booking.id, status: booking.status, childNickname: profile.nickname,
+      specialistId: specialist.id, specialistName: specialist.display_name, specialistRole: specialist.role,
+      specialistRoleKk: specialist.role_kk, startsAt: slot.starts_at, endsAt: slot.ends_at,
+    };
+  });
+}
+
+export async function getNextBookingForUser(ownerId: string): Promise<BookingSummary | null> {
+  const bookings = await getBookingsForUser(ownerId);
+  return filterBookingHistory(bookings, 'upcoming', Date.now())[0] ?? null;
 }
