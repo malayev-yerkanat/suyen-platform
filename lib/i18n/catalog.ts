@@ -144,6 +144,9 @@ const ru = {
   'public.step3Title': 'Запланируйте встречу',
   'public.step3Body': 'Проверьте детали и подтвердите подходящее время',
   'public.disclaimer': 'Сейчас доступна только внутренняя тестовая версия с вымышленными данными',
+
+  'notFound.title': 'Страница не найдена',
+  'notFound.body': 'Возможно, ссылка устарела или в адресе есть опечатка',
 } as const;
 
 export type TranslationKey = keyof typeof ru;
@@ -289,6 +292,9 @@ const kk = {
   'public.step3Title': 'Кездесуді жоспарлаңыз',
   'public.step3Body': 'Мәліметтерді тексеріп, қолайлы уақытты растаңыз',
   'public.disclaimer': 'Қазір тек ойдан шығарылған деректері бар ішкі сынақ нұсқасы қолжетімді',
+
+  'notFound.title': 'Бет табылмады',
+  'notFound.body': 'Сілтеме ескірген немесе мекенжайда қате болуы мүмкін',
 } satisfies Record<TranslationKey, string>;
 
 export const catalog: Record<Locale, Record<TranslationKey, string>> = { ru, kk };

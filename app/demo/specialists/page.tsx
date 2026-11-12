@@ -7,7 +7,7 @@ import { directoryEmptyState, filterSpecialists, parseDirectoryFilters } from '@
 import { requireDemoUser } from '@/lib/auth';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { formatAlmatyDateTime, formatAlmatyDate, formatAlmatyTime } from '@/lib/time';
+import { formatAlmatyDateTime, formatAlmatyDay, formatAlmatyTime } from '@/lib/time';
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -72,7 +72,7 @@ export default async function SpecialistsPage({ searchParams }: Props) {
                   {specialist.slots.slice(0, 3).map((slot) => (
                     <li key={slot.id}>
                       <Link href={`/demo/bookings/new?slot=${encodeURIComponent(slot.id)}`} aria-label={`${translate(locale, 'directory.bookSlot')}: ${formatAlmatyDateTime(slot.startsAt, locale)}`}>
-                        <span>{formatAlmatyDate(slot.startsAt, locale)}</span>
+                        <span>{formatAlmatyDay(slot.startsAt, locale)}</span>
                         <span>{formatAlmatyTime(slot.startsAt, locale)}</span>
                       </Link>
                     </li>

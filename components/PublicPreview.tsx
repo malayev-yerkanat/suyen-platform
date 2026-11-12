@@ -1,13 +1,9 @@
 import { Icon } from '@/components/Icon';
 import { translate, type Locale } from '@/lib/i18n/catalog';
-import { DISPLAY_TIME_ZONE } from '@/lib/time';
-
-const localeCode: Record<Locale, string> = { ru: 'ru-RU', kk: 'kk-KZ' };
+import { formatAlmatyDay } from '@/lib/time';
 
 function dayLabel(offsetDays: number, locale: Locale): string {
-  return new Intl.DateTimeFormat(localeCode[locale], {
-    timeZone: DISPLAY_TIME_ZONE, day: 'numeric', month: 'long',
-  }).format(new Date(Date.now() + offsetDays * 86_400_000));
+  return formatAlmatyDay(new Date(Date.now() + offsetDays * 86_400_000).toISOString(), locale);
 }
 
 /**

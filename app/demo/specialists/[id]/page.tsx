@@ -5,7 +5,7 @@ import { requireDemoUser } from '@/lib/auth';
 import { getSpecialistById } from '@/lib/data/specialists';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { formatAlmatyDateTime, formatAlmatyDate, formatAlmatyTime, groupSlotsByAlmatyDate } from '@/lib/time';
+import { formatAlmatyDateTime, formatAlmatyDay, formatAlmatyTime, groupSlotsByAlmatyDate } from '@/lib/time';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -67,7 +67,7 @@ export default async function SpecialistPage({ params }: Props) {
             <div className="slot-days-grid">
             {groupSlotsByAlmatyDate(specialist.slots).map((group) => (
               <section className="slot-day" key={group.date} aria-labelledby={`day-${group.date}`}>
-                <h3 id={`day-${group.date}`}>{formatAlmatyDate(group.slots[0].startsAt, locale)}</h3>
+                <h3 id={`day-${group.date}`}>{formatAlmatyDay(group.slots[0].startsAt, locale, 'long')}</h3>
                 <ul className="slot-list slot-list-compact">
                   {group.slots.map((slot) => (
                     <li key={slot.id}>

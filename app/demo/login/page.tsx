@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { signInAction } from '@/app/demo/login/actions';
+import { SubmitButton } from '@/app/demo/login/SubmitButton';
 import { getDemoUser, safeDemoPath } from '@/lib/auth';
 import { isDatabaseConfigured } from '@/lib/db';
 import { translate } from '@/lib/i18n/catalog';
@@ -35,9 +36,11 @@ export default async function LoginPage({ searchParams }: { searchParams: LoginS
             <span>{translate(locale, 'auth.password')}</span>
             <input name="password" type="password" autoComplete="current-password" required disabled={!configured} />
           </label>
-          <button className="button button-primary" type="submit" disabled={!configured}>
-            {translate(locale, 'auth.submit')}
-          </button>
+          <SubmitButton
+            label={translate(locale, 'auth.submit')}
+            pendingLabel={translate(locale, 'auth.submitting')}
+            disabled={!configured}
+          />
         </form>
         <p>{translate(locale, 'auth.noSignup')}</p>
       </section>

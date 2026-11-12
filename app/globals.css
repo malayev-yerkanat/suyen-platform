@@ -66,7 +66,8 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3 { font-weight: 500; }
+h1, h2, h3 { font-weight: 500; text-wrap: balance; }
+p { text-wrap: pretty; }
 button, input, select, textarea { font: inherit; }
 button, select, input[type='checkbox'], input[type='radio'] { cursor: pointer; }
 button, input:not([type='checkbox']):not([type='radio']), select, textarea { min-height: 44px; }
@@ -396,6 +397,9 @@ a { color: inherit; text-decoration-thickness: 0.06em; text-underline-offset: 0.
 .appointments-note { max-width: 48rem; color: var(--text-3); font-size: 0.8125rem; }
 .appointments-list { display: grid; gap: 1.5rem; }
 .appointments-list .appointment-card { margin-block: 0; }
+/* Cards in one row share a height; their actions line up at the bottom */
+.appointment-card { display: flex; flex-direction: column; }
+.appointment-card .dashboard-actions { margin-top: auto; padding-top: 1rem; }
 .appointment-card h2 { margin: 0 0 0.25rem; font-size: 1.25rem; line-height: 1.5rem; }
 .appointment-status { color: var(--accent); font-weight: 500; }
 .specialist-detail .slot-list a { display: grid; gap: 0.25rem; }
@@ -453,6 +457,12 @@ a { color: inherit; text-decoration-thickness: 0.06em; text-underline-offset: 0.
 .motion-button:active { transform: none; }
 .status-mark { display: block; width: 3.5rem; height: 3.5rem; margin-bottom: 1rem; color: var(--accent); }
 .status-mark--cancelled { color: var(--text-3); }
+
+.not-found { display: grid; align-content: center; justify-items: start; gap: 0.75rem; min-height: 100dvh; padding-block: 4rem 6rem; }
+.not-found h1 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.25rem); line-height: 1.15; }
+.not-found > p:not(.not-found__code) { max-width: 46ch; margin: 0 0 1rem; color: var(--text-2); }
+.not-found__brand { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; margin-bottom: 2rem; color: var(--text); font-size: 1.125rem; font-weight: 600; text-decoration: none; }
+.not-found__code { margin: 0; color: var(--text-3); font-size: 0.8125rem; }
 
 .skip-link { position: absolute; top: 0.5rem; left: 1rem; z-index: 100; padding: 0.75rem 1rem; background: var(--surface); color: var(--text); border: 2px solid var(--focus); border-radius: var(--radius-control); transform: translateY(-200%); }
 .skip-link:focus { transform: translateY(0); }
