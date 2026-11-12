@@ -1,7 +1,7 @@
 -- Synthetic directory fixture for the internal Süyen demo.
 -- Safe to rerun: existing specialists and slots (including booked ones) do not move.
--- Run with the Supabase migration owner, not from the browser application.
--- To reset an isolated demo project, delete bookings, clear slots.reserved,
+-- Run with `npm run db:seed`, never from application code.
+-- To reset an isolated demo database, delete bookings, clear slots.reserved,
 -- and delete child_profiles in one transaction, then rerun this file. Do not
 -- delete bookings alone: that would leave the availability flags set.
 

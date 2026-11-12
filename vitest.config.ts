@@ -12,6 +12,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     testTimeout: 30_000,
+    // Several test files each start an in-process PostgreSQL (PGlite) at once.
+    hookTimeout: 90_000,
     include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/integration/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',

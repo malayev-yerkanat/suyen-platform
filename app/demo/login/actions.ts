@@ -1,10 +1,11 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { requireDemoUser, safeDemoPath } from '@/lib/auth';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getAuth } from '@/lib/auth-server';
 
 const credentialsSchema = z.object({
   email: z.email().max(254),
@@ -23,13 +24,12 @@ export async function signInAction(formData: FormData): Promise<never> {
   });
   if (!parsed.success) redirect(loginErrorUrl(next, 'invalid'));
 
-  const client = await createServerSupabaseClient();
-  if (!client) redirect(loginErrorUrl(next, 'configuration'));
+  const auth = getAuth();
+  if (!auth) redirect(loginErrorUrl(next, 'configuration'));
 
   let signInError = false;
   try {
-    const { error } = await client.auth.signInWithPassword(parsed.data);
-    signInError = Boolean(error);
+    await auth.api.signInEmail({ body: parsed.data, headers: await headers() });
   } catch {
     signInError = true;
   }
@@ -40,12 +40,11 @@ export async function signInAction(formData: FormData): Promise<never> {
 
 export async function signOutAction(): Promise<never> {
   await requireDemoUser();
-  const client = await createServerSupabaseClient();
-  if (!client) redirect('/demo?authError=signout');
+  const auth = getAuth();
+  if (!auth) redirect('/demo?authError=signout');
   let signOutError = false;
   try {
-    const { error } = await client.auth.signOut({ scope: 'local' });
-    signOutError = Boolean(error);
+    await auth.api.signOut({ headers: await headers() });
   } catch {
     signOutError = true;
   }

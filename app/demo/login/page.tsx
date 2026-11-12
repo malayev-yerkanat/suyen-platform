@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 
 import { signInAction } from '@/app/demo/login/actions';
-import { safeDemoPath } from '@/lib/auth';
+import { getDemoUser, safeDemoPath } from '@/lib/auth';
+import { isDatabaseConfigured } from '@/lib/db';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { createServerSupabaseClient, isSupabaseConfigured } from '@/lib/supabase/server';
 
 type LoginSearchParams = Promise<{ next?: string; error?: string }>;
 
@@ -12,19 +12,10 @@ export default async function LoginPage({ searchParams }: { searchParams: LoginS
   const locale = await getLocale();
   const { next: requestedNext, error } = await searchParams;
   const next = safeDemoPath(requestedNext);
-  const configured = isSupabaseConfigured();
+  const configured = isDatabaseConfigured();
 
-  if (configured) {
-    const client = await createServerSupabaseClient();
-    let signedIn = false;
-    try {
-      const { data: { user } } = await client!.auth.getUser();
-      signedIn = Boolean(user);
-    } catch {
-      // Keep the sign-in form available when Auth is temporarily unreachable.
-    }
-    if (signedIn) redirect(next);
-  }
+  // getDemoUser never throws, so the form stays available if Auth is unreachable.
+  if (configured && await getDemoUser()) redirect(next);
 
   return (
     <main className="demo-content">

@@ -9,7 +9,7 @@ test('private profile redirects to the sign-in form', async ({ page }) => {
 test('invalid credentials show a usable error', async ({ page }) => {
   await page.goto('/demo/login');
   const submit = page.getByRole('button', { name: /sign in|войти|кіру/i });
-  test.skip(await submit.isDisabled(), 'Supabase is not configured');
+  test.skip(await submit.isDisabled(), 'Database is not configured');
   await page.getByRole('textbox', { name: /email|электрон|пошта/i }).fill('wrong@example.invalid');
   await page.getByLabel(/password|пароль|құпиясөз/i).fill('incorrect-password');
   await submit.click();
@@ -18,7 +18,7 @@ test('invalid credentials show a usable error', async ({ page }) => {
 
 test('login errors use the error color', async ({ page }) => {
   await page.goto('/demo/login?error=invalid');
-  test.skip(await page.getByRole('button', { name: /sign in|войти|кіру/i }).isDisabled(), 'Supabase is not configured');
+  test.skip(await page.getByRole('button', { name: /sign in|войти|кіру/i }).isDisabled(), 'Database is not configured');
 
   const alert = page.locator('.auth-error');
   await expect(alert).toBeVisible();

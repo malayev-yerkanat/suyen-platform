@@ -1,9 +1,11 @@
-import type { User } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getAuth } from '@/lib/auth-server';
 
 const baseUrl = 'https://suyen.invalid';
+
+export type DemoUser = { id: string; email: string };
 
 export function safeDemoPath(destination: string | undefined | null): string {
   if (!destination || !destination.startsWith('/') || destination.startsWith('//')) return '/demo';
@@ -18,16 +20,22 @@ export function safeDemoPath(destination: string | undefined | null): string {
   }
 }
 
-export async function requireDemoUser(next = '/demo'): Promise<User> {
-  const client = await createServerSupabaseClient();
-  if (client) {
-    try {
-      const { data: { user }, error } = await client.auth.getUser();
-      if (!error && user) return user;
-    } catch {
-      // An unavailable Auth service must never allow access to a protected page.
-    }
+/** The signed-in user, or null. Never throws: an unreachable database means signed out. */
+export async function getDemoUser(): Promise<DemoUser | null> {
+  const auth = getAuth();
+  if (!auth) return null;
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    return session ? { id: session.user.id, email: session.user.email } : null;
+  } catch {
+    // An unavailable Auth service must never allow access to a protected page.
+    return null;
   }
+}
+
+export async function requireDemoUser(next = '/demo'): Promise<DemoUser> {
+  const user = await getDemoUser();
+  if (user) return user;
 
   redirect(`/demo/login?next=${encodeURIComponent(safeDemoPath(next))}`);
 }

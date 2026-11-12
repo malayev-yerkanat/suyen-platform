@@ -2,8 +2,8 @@ import 'server-only';
 
 import { z } from 'zod';
 
+import { requireAppPool } from '@/lib/db';
 import { SUPPORT_AREAS, type DirectorySpecialist, type DirectorySlot } from '@/lib/filters';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 const specialistRow = z.object({
   id: z.guid(),
@@ -23,7 +23,7 @@ const slotRow = z.object({
   ends_at: z.string().refine((value) => !Number.isNaN(Date.parse(value))),
 }).refine((slot) => Date.parse(slot.ends_at) > Date.parse(slot.starts_at));
 
-/** Fetch only public-facing fixture fields; signed-in RLS still applies. */
+/** Fetch only public-facing fixture fields. Callers must be signed in. */
 export async function getSpecialistDirectory(): Promise<DirectorySpecialist[]> {
   return fetchSpecialists();
 }
@@ -35,28 +35,34 @@ export async function getSpecialistById(id: string): Promise<DirectorySpecialist
 }
 
 async function fetchSpecialists(id?: string): Promise<DirectorySpecialist[]> {
-  const client = await createServerSupabaseClient();
-  if (!client) throw new Error('Directory is unavailable');
+  const pool = requireAppPool();
+  const filter = id ? [id] : [];
 
-  const specialistsQuery = client.from('specialists')
-    .select('id,display_name,role,role_kk,support_area,languages,description,description_kk')
-    .eq('active', true)
-    .order('display_name');
-  const slotsQuery = client.from('slots')
-    .select('id,specialist_id,starts_at,ends_at')
-    .eq('active', true)
-    .eq('reserved', false)
-    .gt('starts_at', new Date().toISOString())
-    .order('starts_at');
-  const [specialistResult, slotResult] = await Promise.all([
-    id ? specialistsQuery.eq('id', id) : specialistsQuery,
-    id ? slotsQuery.eq('specialist_id', id) : slotsQuery,
-  ]);
+  let specialistRows: unknown[];
+  let slotRows: unknown[];
+  try {
+    [{ rows: specialistRows }, { rows: slotRows }] = await Promise.all([
+      pool.query(
+        `select id, display_name, role, role_kk, support_area, languages, description, description_kk
+         from public.specialists
+         where active ${id ? 'and id = $1' : ''}
+         order by display_name`,
+        filter,
+      ),
+      pool.query(
+        `select id, specialist_id, starts_at, ends_at
+         from public.slots
+         where active and not reserved and starts_at > now() ${id ? 'and specialist_id = $1' : ''}
+         order by starts_at`,
+        filter,
+      ),
+    ]);
+  } catch {
+    throw new Error('Directory is unavailable');
+  }
 
-  if (specialistResult.error || slotResult.error) throw new Error('Directory is unavailable');
-
-  const specialists = specialistRow.array().parse(specialistResult.data);
-  const slots = slotRow.array().parse(slotResult.data);
+  const specialists = specialistRow.array().parse(specialistRows);
+  const slots = slotRow.array().parse(slotRows);
   const slotsBySpecialist = slots.reduce<Record<string, DirectorySlot[]>>((groups, slot) => ({
     ...groups,
     [slot.specialist_id]: [

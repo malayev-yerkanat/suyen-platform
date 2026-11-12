@@ -3,8 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 
 import { filterBookingHistory } from '@/lib/booking-history';
-
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { requireAppPool } from '@/lib/db';
 
 const bookingRow = z.object({
   id: z.guid(),
@@ -14,24 +13,27 @@ const bookingRow = z.object({
   status: z.enum(['confirmed', 'cancelled']),
 });
 
-const specialistRow = z.object({
+const summaryRow = z.object({
+  id: z.guid(),
+  status: z.enum(['confirmed', 'cancelled']),
+  child_nickname: z.string(),
+  specialist_id: z.guid(),
+  display_name: z.string(),
+  role: z.string(),
+  role_kk: z.string(),
+  starts_at: z.string().datetime({ offset: true }),
+  ends_at: z.string().datetime({ offset: true }),
+});
+
+const reviewRow = z.object({
   id: z.guid(),
   display_name: z.string(),
   role: z.string(),
   role_kk: z.string(),
-  active: z.boolean(),
-});
-
-const slotRow = z.object({
-  id: z.guid(),
   starts_at: z.string().datetime({ offset: true }),
   ends_at: z.string().datetime({ offset: true }),
-  active: z.boolean(),
-  reserved: z.boolean(),
-  specialist_id: z.guid(),
+  available: z.boolean(),
 });
-
-const profileRow = z.object({ id: z.guid(), nickname: z.string() });
 
 export type BookingStatus = 'confirmed' | 'cancelled';
 export type BookingSummary = {
@@ -81,147 +83,104 @@ function mapBookingError(error: { code?: string; message: string }): never {
   throw new Error('Booking service unavailable');
 }
 
-async function clientOrThrow() {
-  const client = await createServerSupabaseClient();
-  if (!client) throw new Error('Booking service unavailable');
-  return client;
+async function query<Row>(text: string, values: unknown[]): Promise<Row[]> {
+  try {
+    const { rows } = await requireAppPool().query(text, values);
+    return rows as Row[];
+  } catch {
+    throw new Error('Booking service unavailable');
+  }
+}
+
+// Joined in SQL and always scoped by owner: a booking is only ever read together
+// with the profile that belongs to the same owner.
+const summarySelect = `
+  select b.id, b.status, p.nickname as child_nickname,
+         s.id as specialist_id, s.display_name, s.role, s.role_kk,
+         sl.starts_at, sl.ends_at
+  from public.bookings b
+  join public.child_profiles p on p.id = b.child_profile_id and p.owner_id = b.owner_id
+  join public.slots sl on sl.id = b.slot_id
+  join public.specialists s on s.id = sl.specialist_id`;
+
+function toSummary(row: z.infer<typeof summaryRow>): BookingSummary {
+  return {
+    id: row.id,
+    status: row.status,
+    childNickname: row.child_nickname,
+    specialistId: row.specialist_id,
+    specialistName: row.display_name,
+    specialistRole: row.role,
+    specialistRoleKk: row.role_kk,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+  };
 }
 
 export async function getSlotForReview(slotId: string): Promise<SlotReview | null> {
-  const client = await clientOrThrow();
-  const { data, error } = await client.from('slots')
-    .select('id,starts_at,ends_at,active,reserved,specialist_id')
-    .eq('id', slotId).maybeSingle();
-  if (error) throw new Error('Booking service unavailable');
-  if (!data) return null;
-  const slot = slotRow.parse(data);
-
-  const specialistResult = await client.from('specialists')
-    .select('id,display_name,role,role_kk,active')
-    .eq('id', slot.specialist_id).maybeSingle();
-  if (specialistResult.error) throw new Error('Booking service unavailable');
-  if (!specialistResult.data) return null;
-  const specialist = specialistRow.parse(specialistResult.data);
-
+  const rows = await query(
+    `select sl.id, s.display_name, s.role, s.role_kk, sl.starts_at, sl.ends_at,
+            (s.active and sl.active and not sl.reserved and sl.starts_at > now()) as available
+     from public.slots sl
+     join public.specialists s on s.id = sl.specialist_id
+     where sl.id = $1`,
+    [slotId],
+  );
+  if (rows.length === 0) return null;
+  const row = reviewRow.parse(rows[0]);
   return {
-    id: slot.id,
-    specialistName: specialist.display_name,
-    specialistRole: specialist.role,
-    specialistRoleKk: specialist.role_kk,
-    startsAt: slot.starts_at,
-    endsAt: slot.ends_at,
-    available: specialist.active && slot.active && !slot.reserved
-      && new Date(slot.starts_at).getTime() > Date.now(),
+    id: row.id,
+    specialistName: row.display_name,
+    specialistRole: row.role,
+    specialistRoleKk: row.role_kk,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    available: row.available,
   };
 }
 
 export async function reserveSlotForUser(ownerId: string, profileId: string, slotId: string) {
-  const client = await clientOrThrow();
-  const { data, error } = await client.rpc('reserve_slot', {
-    profile_id: profileId, slot_id: slotId,
-  });
-  if (error) mapBookingError(error);
-  const booking = bookingRow.parse(data);
+  let rows: unknown[];
+  try {
+    ({ rows } = await requireAppPool().query(
+      'select * from public.reserve_slot($1, $2, $3)', [ownerId, profileId, slotId],
+    ));
+  } catch (error) {
+    return mapBookingError(error as { code?: string; message: string });
+  }
+  const booking = bookingRow.parse(rows[0]);
   if (booking.owner_id !== ownerId || booking.child_profile_id !== profileId
     || booking.slot_id !== slotId) throw new Error('Booking response mismatch');
   return { id: booking.id, status: booking.status };
 }
 
 export async function cancelBookingForUser(ownerId: string, bookingId: string) {
-  const client = await clientOrThrow();
-  const { data, error } = await client.rpc('cancel_booking', { booking_id: bookingId });
-  if (error) mapBookingError(error);
-  const booking = bookingRow.parse(data);
+  let rows: unknown[];
+  try {
+    ({ rows } = await requireAppPool().query(
+      'select * from public.cancel_booking($1, $2)', [ownerId, bookingId],
+    ));
+  } catch (error) {
+    return mapBookingError(error as { code?: string; message: string });
+  }
+  const booking = bookingRow.parse(rows[0]);
   if (booking.owner_id !== ownerId || booking.id !== bookingId) {
     throw new Error('Booking response mismatch');
   }
   return { id: booking.id, status: booking.status };
 }
 
-async function enrichBooking(
-  booking: z.infer<typeof bookingRow>,
-): Promise<BookingSummary> {
-  const client = await clientOrThrow();
-  const [profileResult, slotResult] = await Promise.all([
-    client.from('child_profiles').select('id,nickname')
-      .eq('id', booking.child_profile_id).eq('owner_id', booking.owner_id).maybeSingle(),
-    client.from('slots').select('id,starts_at,ends_at,active,reserved,specialist_id')
-      .eq('id', booking.slot_id).maybeSingle(),
-  ]);
-  if (profileResult.error || slotResult.error || !profileResult.data || !slotResult.data) {
-    throw new Error('Booking details unavailable');
-  }
-  const profile = profileRow.parse(profileResult.data);
-  const slot = slotRow.parse(slotResult.data);
-  const specialistResult = await client.from('specialists')
-    .select('id,display_name,role,role_kk,active')
-    .eq('id', slot.specialist_id).maybeSingle();
-  if (specialistResult.error || !specialistResult.data) {
-    throw new Error('Booking details unavailable');
-  }
-  const specialist = specialistRow.parse(specialistResult.data);
-  return {
-    id: booking.id,
-    status: booking.status,
-    childNickname: profile.nickname,
-    specialistId: specialist.id,
-    specialistName: specialist.display_name,
-    specialistRole: specialist.role,
-    specialistRoleKk: specialist.role_kk,
-    startsAt: slot.starts_at,
-    endsAt: slot.ends_at,
-  };
-}
-
 export async function getBookingForUser(ownerId: string, bookingId: string): Promise<BookingSummary | null> {
-  const client = await clientOrThrow();
-  const { data, error } = await client.from('bookings')
-    .select('id,owner_id,child_profile_id,slot_id,status')
-    .eq('id', bookingId).eq('owner_id', ownerId).maybeSingle();
-  if (error) throw new Error('Booking details unavailable');
-  return data ? enrichBooking(bookingRow.parse(data)) : null;
+  const rows = await query(`${summarySelect} where b.owner_id = $1 and b.id = $2`, [ownerId, bookingId]);
+  return rows.length === 0 ? null : toSummary(summaryRow.parse(rows[0]));
 }
 
 export async function getBookingsForUser(ownerId: string): Promise<BookingSummary[]> {
-  const client = await clientOrThrow();
-  const { data, error } = await client.from('bookings')
-    .select('id,owner_id,child_profile_id,slot_id,status')
-    .eq('owner_id', ownerId);
-  if (error) throw new Error('Booking details unavailable');
-  const bookings = bookingRow.array().parse(data);
-  if (bookings.some((booking) => booking.owner_id !== ownerId)) {
-    throw new Error('Booking details unavailable');
-  }
-  if (bookings.length === 0) return [];
-  const [profileResult, slotResult] = await Promise.all([
-    client.from('child_profiles').select('id,nickname').eq('owner_id', ownerId)
-      .in('id', [...new Set(bookings.map((booking) => booking.child_profile_id))]),
-    client.from('slots').select('id,starts_at,ends_at,active,reserved,specialist_id')
-      .in('id', [...new Set(bookings.map((booking) => booking.slot_id))]),
-  ]);
-  if (profileResult.error || slotResult.error) throw new Error('Booking details unavailable');
-  const profiles = profileRow.array().parse(profileResult.data);
-  const slots = slotRow.array().parse(slotResult.data);
-  if (slots.length === 0) throw new Error('Booking details unavailable');
-  const specialistResult = await client.from('specialists')
-    .select('id,display_name,role,role_kk,active')
-    .in('id', [...new Set(slots.map((slot) => slot.specialist_id))]);
-  if (specialistResult.error) throw new Error('Booking details unavailable');
-  const specialists = specialistRow.array().parse(specialistResult.data);
-  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
-  const slotById = new Map(slots.map((slot) => [slot.id, slot]));
-  const specialistById = new Map(specialists.map((specialist) => [specialist.id, specialist]));
-  return bookings.map((booking) => {
-    const profile = profileById.get(booking.child_profile_id);
-    const slot = slotById.get(booking.slot_id);
-    const specialist = slot && specialistById.get(slot.specialist_id);
-    if (!profile || !slot || !specialist) throw new Error('Booking details unavailable');
-    return {
-      id: booking.id, status: booking.status, childNickname: profile.nickname,
-      specialistId: specialist.id, specialistName: specialist.display_name, specialistRole: specialist.role,
-      specialistRoleKk: specialist.role_kk, startsAt: slot.starts_at, endsAt: slot.ends_at,
-    };
-  });
+  const rows = await query(
+    `${summarySelect} where b.owner_id = $1 order by sl.starts_at, b.created_at`,
+    [ownerId],
+  );
+  return summaryRow.array().parse(rows).map(toSummary);
 }
 
 export async function getNextBookingForUser(ownerId: string): Promise<BookingSummary | null> {

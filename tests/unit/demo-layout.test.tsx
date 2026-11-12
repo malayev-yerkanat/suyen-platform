@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 const state = vi.hoisted(() => ({ locale: 'ru' as 'ru' | 'kk' }));
 vi.mock('@/lib/i18n/locale', () => ({ getLocale: async () => state.locale }));
-vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => null }));
+vi.mock('@/lib/auth', () => ({ getDemoUser: async () => null }));
 vi.mock('@/app/demo/login/actions', () => ({ signOutAction: vi.fn() }));
 vi.mock('@/components/LocaleSwitch', () => ({ LocaleSwitch: () => <button>Language</button> }));
 import DemoLayout from '@/app/demo/layout';
