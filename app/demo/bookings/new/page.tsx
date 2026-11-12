@@ -73,7 +73,6 @@ export default async function NewBookingPage({ searchParams }: Props) {
   return (
     <main className="demo-content booking-page">
       <header className="booking-intro">
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'booking.reviewTitle')}</h1>
         <p>{translate(locale, 'booking.reviewSubtitle')}</p>
       </header>

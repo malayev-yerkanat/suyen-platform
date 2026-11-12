@@ -52,7 +52,6 @@ export default async function BookingDetailPage({ params }: Props) {
     <main className="demo-content booking-page">
       <header className="booking-intro">
         <StatusMark variant={booking.status === 'cancelled' ? 'cancelled' : 'success'} />
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, booking.status === 'confirmed'
           ? 'booking.confirmed' : 'booking.cancelled')}</h1>
       </header>

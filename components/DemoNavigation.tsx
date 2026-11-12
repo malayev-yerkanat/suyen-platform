@@ -7,7 +7,8 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { translate, type Locale } from '@/lib/i18n/catalog';
 import { motionConfig } from '@/lib/motion-config';
-import { motionTokens, springs } from '@/lib/motion-tokens';
+import { Icon } from '@/components/Icon';
+import { motionTokens } from '@/lib/motion-tokens';
 
 const sections = [
   { href: '/demo', label: 'nav.dashboard' },
@@ -34,7 +35,10 @@ function NavigationContent({ locale, localeSwitch, signOut, pathname }: Navigati
     const panel = panelRef.current;
     if (!open || !panel || !motionEnabled || !motionConfig.shouldAnimate()) return;
     // Start after the disclosure is visible; keep SSR and closed-menu focus behavior native.
-    const controls = animate(panel, { opacity: [0, 1], y: [-motionTokens.distance.sm, 0] }, springs.snappy);
+    const controls = animate(panel, { opacity: [0, 1], y: [-motionTokens.distance.sm, 0] }, {
+      duration: motionTokens.duration.fast,
+      ease: motionTokens.easing.smooth,
+    });
     return () => {
       controls.stop();
       panel.style.removeProperty('opacity');
@@ -59,7 +63,7 @@ function NavigationContent({ locale, localeSwitch, signOut, pathname }: Navigati
         <button ref={toggleRef} type="button" className="demo-navigation__toggle" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)}>
           <span className="demo-navigation__current">{translate(locale, currentSection?.label ?? 'nav.demo')}</span>
           <span>{translate(locale, 'nav.menu')}</span>
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d={open ? 'm6 6 12 12M6 18 18 6' : 'M4 6h16M4 12h16M4 18h16'} /></svg>
+          <Icon name={open ? 'x' : 'menu'} size={18} />
         </button>
         {localeSwitch}
       </div>

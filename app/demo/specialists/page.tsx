@@ -34,7 +34,6 @@ export default async function SpecialistsPage({ searchParams }: Props) {
   return (
     <MotionScene><main className="demo-content">
       <header data-motion="item" className="directory-intro">
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'directory.title')}</h1>
         <p>{translate(locale, 'directory.subtitle')}</p>
       </header>
@@ -52,7 +51,7 @@ export default async function SpecialistsPage({ searchParams }: Props) {
         <div className="specialist-grid">
           {matches.map((specialist) => (
             <article data-motion="item" className="specialist-card" key={specialist.id}>
-              <p className="eyebrow">{translate(locale, 'directory.sampleProfile')}</p>
+              <p className="meta-label">{translate(locale, 'directory.sampleProfile')}</p>
               <h2>{specialist.displayName}</h2>
               <p>{locale === 'kk' ? specialist.roleKk : specialist.role}</p>
               <p>{translate(locale, `support.${specialist.supportArea}`)}</p>

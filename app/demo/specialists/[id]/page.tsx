@@ -41,7 +41,7 @@ export default async function SpecialistPage({ params }: Props) {
     <MotionScene><main className="demo-content specialist-detail">
       <Link className="button" href="/demo/specialists">{translate(locale, 'specialist.back')}</Link>
       <header data-motion="item" className="directory-intro">
-        <p className="eyebrow">{translate(locale, 'directory.sampleProfile')}</p>
+        <p className="meta-label">{translate(locale, 'directory.sampleProfile')}</p>
         <h1>{specialist.displayName}</h1>
         <p>{locale === 'kk' ? specialist.roleKk : specialist.role}</p>
         <p>{translate(locale, 'specialist.demoNote')}</p>

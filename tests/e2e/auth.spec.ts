@@ -43,7 +43,9 @@ test('sign-in and sign-out protect the route', async ({ page }) => {
   await expect(dashboardCard).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   const signOut = page.getByRole('button', { name: /sign out|выйти|шығу/i });
   const signOutRadius = await signOut.evaluate((element) => parseFloat(getComputedStyle(element).borderRadius));
-  expect(signOutRadius).toBeGreaterThanOrEqual(20);
+  // Buttons share the control radius (10px), not a full pill.
+  expect(signOutRadius).toBeGreaterThanOrEqual(8);
+  expect(signOutRadius).toBeLessThanOrEqual(12);
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(dashboardCard).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);

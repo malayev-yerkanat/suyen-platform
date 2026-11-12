@@ -37,7 +37,7 @@ describe('appointment history page', () => {
   it('renders empty history with discovery action', async () => {
     mocks.bookings.mockResolvedValue([]);
     render(await BookingsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByText('Предстоящих записей пока нет.')).toBeTruthy();
+    expect(screen.getByText('Предстоящих записей пока нет')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Найти специалиста' })).toBeTruthy();
   });
   it('shows retry in the selected section without exposing errors or a misleading empty state', async () => {
@@ -47,7 +47,7 @@ describe('appointment history page', () => {
     expect(screen.getByRole('alert')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Повторить' }).getAttribute('href')).toBe('/demo/bookings?view=cancelled');
     expect(screen.queryByText('private database detail')).toBeNull();
-    expect(screen.queryByText('Отменённых записей пока нет.')).toBeNull();
+    expect(screen.queryByText('Отменённых записей пока нет')).toBeNull();
     log.mockRestore();
   });
   it('marks loading state busy', () => {

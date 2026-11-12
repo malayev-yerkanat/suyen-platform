@@ -37,7 +37,7 @@ test('failed booking read never presents an empty booking claim', async () => {
   mocks.booking.mockRejectedValue(new Error('read failed'));
   const html = renderToStaticMarkup(await Dashboard({ searchParams: Promise.resolve({}) }));
   expect(html).toContain('role="alert"');
-  expect(html).not.toContain('Пока нет подтверждённых записей.');
+  expect(html).not.toContain('Пока нет подтверждённых записей');
   expect(html).toContain('href="/demo/bookings"');
 });
 

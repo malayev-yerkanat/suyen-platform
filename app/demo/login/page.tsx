@@ -20,7 +20,6 @@ export default async function LoginPage({ searchParams }: { searchParams: LoginS
   return (
     <main className="demo-content">
       <section className="auth-panel" aria-labelledby="login-title">
-        <p className="page-lead">{translate(locale, 'nav.demo')}</p>
         <h1 id="login-title">{translate(locale, 'auth.title')}</h1>
         <p>{translate(locale, 'auth.subtitle')}</p>
         <p>{translate(locale, 'demo.sharedAccount')}</p>

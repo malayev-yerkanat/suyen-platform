@@ -18,10 +18,10 @@ describe('feedback form', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось сохранить');
     expect(screen.getByLabelText('Удалось выполнить задачу?')).toHaveValue('partially');
     fireEvent.submit(container.querySelector('form')!);
-    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Спасибо за отзыв!'));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Спасибо за отзыв'));
     expect(mocks.save.mock.calls.map((call) => call[1].get('submissionId'))).toEqual([submissionId, submissionId]);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Спасибо за отзыв!' })).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Спасибо за отзыв' })).toHaveFocus();
   });
   it('explains changed retry conflicts and offers a fresh form', async () => {
     mocks.save.mockImplementationOnce(async (_state, data: FormData) => ({ status: 'conflict', values: Object.fromEntries(data) }));

@@ -4,6 +4,7 @@ import { demoMetadata } from '@/lib/demo-metadata';
 export const generateMetadata = () => demoMetadata('dashboard');
 
 import { signOutAction } from '@/app/demo/login/actions';
+import { BrandMark } from '@/components/BrandMark';
 import { DemoBanner } from '@/components/DemoBanner';
 import { DemoNavigation } from '@/components/DemoNavigation';
 import { LocaleSwitch } from '@/components/LocaleSwitch';
@@ -21,7 +22,10 @@ export default async function DemoLayout({ children }: Readonly<{ children: Reac
       <a className="skip-link" href="#demo-main">{translate(locale, 'nav.skipToContent')}</a>
       <DemoBanner locale={locale} />
       <header className="demo-header">
-        <Link href="/" className="demo-brand">{translate(locale, 'common.brand')}</Link>
+        <Link href="/" className="demo-brand">
+          <BrandMark />
+          <span>{translate(locale, 'common.brand')}</span>
+        </Link>
         {signedIn ? (
           <DemoNavigation
             locale={locale}

@@ -24,8 +24,12 @@ test('reduced motion keeps content visible and suppresses spatial animation', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.mouse.move(0, 0);
+  // Buttons do not lift on hover; they only scale down while pressed.
   await button.hover();
+  await expect(button).toHaveCSS('transform', 'none');
+  await page.mouse.down();
   await expect(button).not.toHaveCSS('transform', 'none');
+  await page.mouse.up();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(button).toHaveCSS('transform', 'none');
 });
