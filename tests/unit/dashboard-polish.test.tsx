@@ -25,19 +25,22 @@ test('empty appointment card offers a booking action and contains the history li
 });
 
 test('confirmed appointment retains its details link and history action', async () => {
-  mocks.booking.mockResolvedValue({ id: 'booking-1', specialistName: 'Demo specialist', specialistRole: 'Role', specialistRoleKk: 'Рөл', startsAt: '2030-01-01T10:00:00Z' });
+  mocks.booking.mockResolvedValue({ id: 'booking-1', specialistName: 'Demo specialist', specialistRole: 'Role', specialistRoleKk: 'Рөл', startsAt: '2030-01-01T10:00:00Z', endsAt: '2030-01-01T10:50:00Z' });
   mocks.locale.mockResolvedValue('kk');
   const html = renderToStaticMarkup(await Dashboard({ searchParams: Promise.resolve({}) }));
   expect(html).toContain('href="/demo/bookings/booking-1"');
   expect(html).toContain('href="/demo/bookings"');
   expect(html).toContain('Рөл');
+  // Same session label as every other page: time range, duration, Almaty time, no raw offset.
+  expect(html).toContain('15:00–15:50 · 50 мин');
+  expect(html).not.toContain('GMT');
 });
 
 test('failed booking read never presents an empty booking claim', async () => {
   mocks.booking.mockRejectedValue(new Error('read failed'));
   const html = renderToStaticMarkup(await Dashboard({ searchParams: Promise.resolve({}) }));
   expect(html).toContain('role="alert"');
-  expect(html).not.toContain('Пока нет подтверждённых записей.');
+  expect(html).not.toContain('Пока нет подтверждённых записей');
   expect(html).toContain('href="/demo/bookings"');
 });
 

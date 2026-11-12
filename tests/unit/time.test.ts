@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatAlmatyDateTime, formatAlmatyTime, formatAlmatyDate, groupSlotsByAlmatyDate } from '@/lib/time';
+import { formatAlmatyDateTime, formatAlmatyDay, formatAlmatyTime, formatAlmatyDate, groupSlotsByAlmatyDate } from '@/lib/time';
+
+describe('formatAlmatyDay', () => {
+  it('names the weekday and day without the year, in the Almaty zone', () => {
+    // 2030-01-01T19:00Z is already 2 January (a Wednesday) in Almaty.
+    const short = formatAlmatyDay('2030-01-01T19:00:00Z', 'ru');
+    expect(short).toContain('2 января');
+    expect(short).toMatch(/^ср/);
+    expect(short).not.toContain('2030');
+    expect(formatAlmatyDay('2030-01-01T19:00:00Z', 'ru', 'long')).toMatch(/^среда/);
+    expect(formatAlmatyDay('2030-01-01T19:00:00Z', 'kk')).not.toContain('2030');
+  });
+});
 
 describe('Almaty date-time formatting', () => {
   it('shows a UTC instant in the Almaty zone with a derived offset', () => {

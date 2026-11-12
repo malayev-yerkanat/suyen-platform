@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  createClient: vi.fn(),
+  getAuth: vi.fn(),
+  getSession: vi.fn(),
   redirect: vi.fn(),
 }));
 
-vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: mocks.createClient }));
+vi.mock('@/lib/auth-server', () => ({ getAuth: mocks.getAuth }));
 vi.mock('next/navigation', () => ({ redirect: mocks.redirect }));
+vi.mock('next/headers', () => ({ headers: async () => new Headers({ cookie: 'session=abc' }) }));
 
-import { requireDemoUser, safeDemoPath } from '@/lib/auth';
+import { getDemoUser, requireDemoUser, safeDemoPath } from '@/lib/auth';
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -40,38 +42,52 @@ describe('safeDemoPath', () => {
 });
 
 describe('requireDemoUser', () => {
-  it('returns the server-validated user for a valid session', async () => {
-    const user = { id: 'team-user' };
-    const getUser = vi.fn().mockResolvedValue({ data: { user }, error: null });
-    mocks.createClient.mockResolvedValue({ auth: { getUser } });
+  beforeEach(() => {
+    mocks.getAuth.mockReturnValue({ api: { getSession: mocks.getSession } });
+  });
 
-    await expect(requireDemoUser('/demo/profile')).resolves.toBe(user);
-    expect(getUser).toHaveBeenCalledOnce();
+  it('returns only the id and email of the validated session user', async () => {
+    mocks.getSession.mockResolvedValue({
+      user: { id: 'team-user', email: 'team@example.invalid', name: 'Team', image: null },
+      session: { token: 'secret-token' },
+    });
+
+    await expect(requireDemoUser('/demo/profile')).resolves.toEqual({
+      id: 'team-user', email: 'team@example.invalid',
+    });
+    expect(mocks.getSession).toHaveBeenCalledWith({ headers: expect.any(Headers) });
     expect(mocks.redirect).not.toHaveBeenCalled();
   });
 
-  it('redirects to the requested internal page when no client is configured', async () => {
-    mocks.createClient.mockResolvedValue(null);
+  it('redirects to the requested internal page when Auth is not configured', async () => {
+    mocks.getAuth.mockReturnValue(null);
 
     await expect(requireDemoUser('/demo/profile')).rejects.toThrow(
       'redirect:/demo/login?next=%2Fdemo%2Fprofile',
     );
   });
 
-  it('redirects when Auth rejects or omits the session user', async () => {
-    const getUser = vi.fn().mockResolvedValue({ data: { user: null }, error: new Error('expired') });
-    mocks.createClient.mockResolvedValue({ auth: { getUser } });
+  it('redirects when there is no session', async () => {
+    mocks.getSession.mockResolvedValue(null);
 
     await expect(requireDemoUser('/demo')).rejects.toThrow('redirect:/demo/login?next=%2Fdemo');
-    expect(getUser).toHaveBeenCalledOnce();
+    expect(mocks.getSession).toHaveBeenCalledOnce();
   });
 
   it('denies access when the Auth service is unavailable', async () => {
-    const getUser = vi.fn().mockRejectedValue(new Error('network unavailable'));
-    mocks.createClient.mockResolvedValue({ auth: { getUser } });
+    mocks.getSession.mockRejectedValue(new Error('network unavailable'));
 
     await expect(requireDemoUser('/demo/specialists')).rejects.toThrow(
       'redirect:/demo/login?next=%2Fdemo%2Fspecialists',
     );
+  });
+});
+
+describe('getDemoUser', () => {
+  it('is null rather than an error when Auth fails', async () => {
+    mocks.getAuth.mockReturnValue({ api: { getSession: mocks.getSession } });
+    mocks.getSession.mockRejectedValue(new Error('database down'));
+
+    await expect(getDemoUser()).resolves.toBeNull();
   });
 });

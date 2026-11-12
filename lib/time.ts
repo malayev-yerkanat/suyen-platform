@@ -32,6 +32,13 @@ export function formatAlmatyDate(instant: string, locale: Locale): string {
   }).format(new Date(instant));
 }
 
+/** A day without the year, for picking a time: "чт, 13 ноября" or, long, "четверг, 13 ноября". */
+export function formatAlmatyDay(instant: string, locale: Locale, weekday: 'short' | 'long' = 'short'): string {
+  return new Intl.DateTimeFormat(localeCode[locale], {
+    timeZone: DISPLAY_TIME_ZONE, weekday, day: 'numeric', month: 'long',
+  }).format(new Date(instant));
+}
+
 export function formatAlmatyTime(instant: string, locale: Locale): string {
   return new Intl.DateTimeFormat(localeCode[locale], {
     timeZone: DISPLAY_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',

@@ -18,7 +18,7 @@ export default async function HomePage() {
         <PublicProcess locale={locale} />
       </main></MotionScene>
       <footer className="public-footer page-shell">
-        <a className="public-footer__brand" href="#top" aria-label="Süyen">Süyen<span aria-hidden="true">.</span></a>
+        <a className="public-footer__brand" href="#top" aria-label="Süyen">Süyen</a>
         <p>{translate(locale, 'public.disclaimer')}</p>
       </footer>
     </div>

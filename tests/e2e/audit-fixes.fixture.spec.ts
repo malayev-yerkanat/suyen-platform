@@ -13,7 +13,7 @@ test('filters stay aligned after reset and browser history; header follows visua
   await page.getByRole('combobox', { name: 'Язык сессии' }).selectOption('kk');
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Показать результаты' }).click();
-  await expect(page.getByRole('heading', { name: 'По этим фильтрам специалисты не найдены.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'По этим фильтрам специалисты не найдены' })).toBeVisible();
   await page.getByRole('link', { name: 'Сбросить фильтры' }).first().click();
   await expect(page.locator('article')).toHaveCount(2);
   await expect(page.getByRole('combobox', { name: 'Направление', exact: true })).toHaveValue('');

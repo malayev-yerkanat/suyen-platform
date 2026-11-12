@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), client: vi.fn() }));
+
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), save: vi.fn() }));
 vi.mock('@/lib/auth', () => ({ requireDemoUser: mocks.auth }));
-vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: mocks.client }));
+vi.mock('@/lib/data/feedback', () => ({ saveFeedbackForUser: mocks.save }));
 import { saveFeedbackAction, type FeedbackActionState } from '@/app/demo/feedback/actions';
-import { saveFeedbackForUser } from '@/lib/data/feedback';
+
+// Storage behavior (idempotent retries, conflicts, immutability) is covered against a
+// real database in data-feedback.test.ts. This file covers the action around it.
 const values = { submissionId: '13c9cf98-242f-4a76-aa03-548717583a10', entryPoint: 'dashboard', outcome: 'yes', ease: '5', difficulty: 'none' };
 const idle: FeedbackActionState = { status: 'idle', values };
 function form(change: Record<string, string> = {}) {
@@ -11,49 +14,40 @@ function form(change: Record<string, string> = {}) {
   Object.entries({ ...values, ...change }).forEach(([key, value]) => data.set(key, value));
   return data;
 }
-function db(error: { code: string } | null = null, existing: unknown = { submission_id: values.submissionId, entry_point: 'dashboard', outcome: 'yes', ease: 5, difficulty: 'none' }, readError: unknown = null) {
-  const chain = { insert: vi.fn(async () => ({ error })), select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn(async () => ({ data: existing, error: readError })) };
-  chain.select.mockReturnValue(chain); chain.eq.mockReturnValue(chain);
-  mocks.client.mockResolvedValue({ from: vi.fn(() => chain) });
-  return chain;
-}
-describe('feedback action and persistence', () => {
-  beforeEach(() => { vi.clearAllMocks(); mocks.auth.mockResolvedValue({ id: 'session-owner' }); });
-  it('uses session owner and saves only validated structured fields', async () => {
-    const chain = db();
-    expect((await saveFeedbackAction(idle, form({ ownerId: 'attacker', comment: 'private' }))).status).toBe('success');
-    expect(chain.insert).toHaveBeenCalledWith({ owner_id: 'session-owner', submission_id: values.submissionId, entry_point: 'dashboard', outcome: 'yes', ease: 5, difficulty: 'none' });
+
+describe('feedback action', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.auth.mockResolvedValue({ id: 'session-owner' });
+    mocks.save.mockResolvedValue('saved');
   });
+
+  it('uses the session owner and saves only validated structured fields', async () => {
+    const result = await saveFeedbackAction(idle, form({ ownerId: 'attacker', comment: 'private' }));
+    expect(result.status).toBe('success');
+    expect(mocks.save).toHaveBeenCalledWith('session-owner', {
+      submissionId: values.submissionId, entryPoint: 'dashboard', outcome: 'yes', ease: 5, difficulty: 'none',
+    });
+  });
+
   it('does not save invalid fields', async () => {
-    const chain = db();
     expect((await saveFeedbackAction(idle, form({ ease: '0' }))).status).toBe('invalid');
-    expect(chain.insert).not.toHaveBeenCalled();
+    expect(mocks.save).not.toHaveBeenCalled();
   });
-  it('requires authentication before accessing data', async () => {
+
+  it('requires authentication before touching data', async () => {
     mocks.auth.mockRejectedValueOnce(new Error('redirect'));
     await expect(saveFeedbackAction(idle, form())).rejects.toThrow('redirect');
-    expect(mocks.client).not.toHaveBeenCalled();
+    expect(mocks.save).not.toHaveBeenCalled();
   });
-  it('returns safe failure with the same identity and answers for retry', async () => {
-    db({ code: 'network' });
+
+  it('returns a safe failure that keeps the same identity and answers for a retry', async () => {
+    mocks.save.mockRejectedValueOnce(new Error('private database detail'));
     expect(await saveFeedbackAction(idle, form())).toEqual({ status: 'error', values });
   });
-  it('treats a repeated identity as success only after an owner-scoped lookup', async () => {
-    const chain = db({ code: '23505' });
-    expect((await saveFeedbackAction(idle, form())).status).toBe('success');
-    expect(chain.eq).toHaveBeenCalledWith('owner_id', 'session-owner');
-    expect(chain.eq).toHaveBeenCalledWith('submission_id', values.submissionId);
-  });
-  it('reports conflict when a lost-response retry changes the original answers', async () => {
-    db({ code: '23505' });
+
+  it('reports a conflict when a lost-response retry changed the original answers', async () => {
+    mocks.save.mockResolvedValueOnce('conflict');
     expect((await saveFeedbackAction(idle, form({ ease: '2' }))).status).toBe('conflict');
-  });
-  it.each([['missing', null, null], ['failed', null, { code: 'denied' }]])('rejects %s duplicate read', async (_name, data, error) => {
-    db({ code: '23505' }, data, error);
-    expect((await saveFeedbackAction(idle, form())).status).toBe('error');
-  });
-  it('fails safely when database is unconfigured', async () => {
-    mocks.client.mockResolvedValue(null);
-    await expect(saveFeedbackForUser('owner', { ...values, entryPoint: 'dashboard', outcome: 'yes', difficulty: 'none', ease: 5 })).rejects.toThrow('not configured');
   });
 });

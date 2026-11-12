@@ -27,7 +27,6 @@ export default async function BookingsPage({ searchParams }: {
   return (
     <MotionScene><main className="demo-content appointments-page">
       <header data-motion="item" className="directory-intro">
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'appointments.title')}</h1>
         <p>{translate(locale, 'appointments.subtitle')}</p>
       </header>

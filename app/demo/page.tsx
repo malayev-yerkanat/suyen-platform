@@ -6,7 +6,7 @@ import { getNextBookingForUser, type BookingSummary } from '@/lib/data/bookings'
 import { getProfileForUser, type ChildProfile } from '@/lib/data/profile';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { formatAlmatyDateTime } from '@/lib/time';
+import { formatBookingSession } from '@/lib/time';
 
 export default async function DemoDashboardPage({
   searchParams,
@@ -39,7 +39,6 @@ export default async function DemoDashboardPage({
     <MotionScene><main className="demo-content dashboard-page">
       <section className="dashboard-intro">
         {authError === 'signout' && <p role="alert" className="auth-error">{translate(locale, 'common.error')}</p>}
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'demo.title')}</h1>
         <p>{translate(locale, 'demo.subtitle')}</p>
         <p>{translate(locale, 'demo.sharedAccount')}</p>
@@ -78,7 +77,7 @@ export default async function DemoDashboardPage({
             <>
               <p>{nextBooking.specialistName} · {locale === 'kk'
                 ? nextBooking.specialistRoleKk : nextBooking.specialistRole}</p>
-              <p>{formatAlmatyDateTime(nextBooking.startsAt, locale)}</p>
+              <p>{formatBookingSession(nextBooking.startsAt, nextBooking.endsAt, locale)}</p>
               <Link href={`/demo/bookings/${nextBooking.id}`} className="button">
                 {translate(locale, 'booking.view')}
               </Link>

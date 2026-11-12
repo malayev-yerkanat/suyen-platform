@@ -4,32 +4,28 @@ import { demoMetadata } from '@/lib/demo-metadata';
 export const generateMetadata = () => demoMetadata('dashboard');
 
 import { signOutAction } from '@/app/demo/login/actions';
+import { BrandMark } from '@/components/BrandMark';
 import { DemoBanner } from '@/components/DemoBanner';
 import { DemoNavigation } from '@/components/DemoNavigation';
 import { LocaleSwitch } from '@/components/LocaleSwitch';
+import { getDemoUser } from '@/lib/auth';
 import { translate } from '@/lib/i18n/catalog';
 import { getLocale } from '@/lib/i18n/locale';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export default async function DemoLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
-  const client = await createServerSupabaseClient();
-  let signedIn = false;
-  if (client) {
-    try {
-      const { data: { user } } = await client.auth.getUser();
-      signedIn = Boolean(user);
-    } catch {
-      // The protected page still performs its own Auth check.
-    }
-  }
+  // The protected page still performs its own Auth check.
+  const signedIn = Boolean(await getDemoUser());
 
   return (
     <div className="demo-shell">
       <a className="skip-link" href="#demo-main">{translate(locale, 'nav.skipToContent')}</a>
       <DemoBanner locale={locale} />
       <header className="demo-header">
-        <Link href="/" className="demo-brand">{translate(locale, 'common.brand')}</Link>
+        <Link href="/" className="demo-brand">
+          <BrandMark />
+          <span>{translate(locale, 'common.brand')}</span>
+        </Link>
         {signedIn ? (
           <DemoNavigation
             locale={locale}

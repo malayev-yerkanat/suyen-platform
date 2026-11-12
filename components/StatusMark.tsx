@@ -29,7 +29,7 @@ export function StatusMark({ variant = 'success' }: { variant?: 'success' | 'can
   return (
     <svg ref={scope} className={`status-mark status-mark--${variant}`} width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
       <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="1.5" opacity="0.25" />
-      <path d={variant === 'success' ? 'M14 24l7 7 13-14' : 'M16 24h16'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={variant === 'success' ? 'M14 24l7 7 13-14' : 'M16 24h16'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -1,4 +1,6 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import 'server-only';
+
+import { requireAppPool } from '@/lib/db';
 import type { ProfileInput } from '@/lib/validation/profile';
 
 export type ChildProfile = ProfileInput & { id: string };
@@ -11,7 +13,7 @@ type ProfileRow = {
   support_area: ProfileInput['supportArea'];
 };
 
-const profileColumns = 'id,nickname,age_band,preferred_language,support_area';
+const profileColumns = 'id, nickname, age_band, preferred_language, support_area';
 
 function fromRow(row: ProfileRow): ChildProfile {
   return {
@@ -23,54 +25,31 @@ function fromRow(row: ProfileRow): ChildProfile {
   };
 }
 
-function profilePayload(input: ProfileInput) {
-  return {
-    nickname: input.nickname,
-    age_band: input.ageBand,
-    preferred_language: input.preferredLanguage,
-    support_area: input.supportArea,
-  };
-}
-
 export async function getProfileForUser(ownerId: string): Promise<ChildProfile | null> {
-  const client = await createServerSupabaseClient();
-  if (!client) throw new Error('Supabase is not configured');
-
-  const { data, error } = await client.from('child_profiles')
-    .select(profileColumns).eq('owner_id', ownerId).maybeSingle();
-  if (error) throw error;
-  return data ? fromRow(data as ProfileRow) : null;
+  const { rows } = await requireAppPool().query<ProfileRow>(
+    `select ${profileColumns} from public.child_profiles where owner_id = $1`,
+    [ownerId],
+  );
+  return rows[0] ? fromRow(rows[0]) : null;
 }
 
+/**
+ * One profile per account. The upsert on owner_id also settles the case where two
+ * teammates create the shared account's only profile at the same moment.
+ */
 export async function saveProfileForUser(ownerId: string, input: ProfileInput): Promise<ChildProfile> {
-  const client = await createServerSupabaseClient();
-  if (!client) throw new Error('Supabase is not configured');
-
-  const { data: existing, error: readError } = await client.from('child_profiles')
-    .select('id').eq('owner_id', ownerId).maybeSingle();
-  if (readError) throw readError;
-
-  if (existing) {
-    const { data, error } = await client.from('child_profiles')
-      .update(profilePayload(input)).eq('id', existing.id).eq('owner_id', ownerId)
-      .select(profileColumns).single();
-    if (error) throw error;
-    return fromRow(data as ProfileRow);
-  }
-
-  const { data, error } = await client.from('child_profiles')
-    .insert({ owner_id: ownerId, ...profilePayload(input) })
-    .select(profileColumns).single();
-  if (!error) return fromRow(data as ProfileRow);
-
-  // Two teammates may create the shared account's only profile at once.
-  if (error.code !== '23505') throw error;
-  const { data: raced, error: racedReadError } = await client.from('child_profiles')
-    .select('id').eq('owner_id', ownerId).single();
-  if (racedReadError) throw racedReadError;
-  const { data: updated, error: updateError } = await client.from('child_profiles')
-    .update(profilePayload(input)).eq('id', raced.id).eq('owner_id', ownerId)
-    .select(profileColumns).single();
-  if (updateError) throw updateError;
-  return fromRow(updated as ProfileRow);
+  const { rows } = await requireAppPool().query<ProfileRow>(
+    `insert into public.child_profiles
+       (owner_id, nickname, age_band, preferred_language, support_area)
+     values ($1, $2, $3, $4, $5)
+     on conflict (owner_id) do update set
+       nickname = excluded.nickname,
+       age_band = excluded.age_band,
+       preferred_language = excluded.preferred_language,
+       support_area = excluded.support_area,
+       updated_at = now()
+     returning ${profileColumns}`,
+    [ownerId, input.nickname, input.ageBand, input.preferredLanguage, input.supportArea],
+  );
+  return fromRow(rows[0]);
 }

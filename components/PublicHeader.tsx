@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { BrandMark } from '@/components/BrandMark';
 import { LocaleSwitch } from '@/components/LocaleSwitch';
 import { translate, type Locale } from '@/lib/i18n/catalog';
 
@@ -7,7 +8,7 @@ export function PublicHeader({ locale }: { locale: Locale }) {
   return (
     <header className="public-header page-shell">
       <a className="public-header__brand" href="/" aria-label="Süyen">
-        <span className="public-header__mark" aria-hidden="true"><span /></span>
+        <BrandMark />
         <span>Süyen</span>
       </a>
       <nav className="public-header__nav" aria-label={translate(locale, 'nav.home')}>

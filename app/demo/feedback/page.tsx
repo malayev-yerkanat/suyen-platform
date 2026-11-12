@@ -12,7 +12,6 @@ export default async function FeedbackPage({ searchParams }: Props) {
   return (
     <main className="demo-content profile-page">
       <div className="profile-intro">
-        <p className="eyebrow">{translate(locale, 'nav.demo')}</p>
         <h1>{translate(locale, 'feedback.title')}</h1>
         <p>{translate(locale, 'feedback.subtitle')}</p>
       </div>

@@ -59,7 +59,7 @@ describe('specialist pages', () => {
   it('handles a specialist without slots', async () => {
     mocks.getById.mockResolvedValue({ ...specialist, slots: [] });
     const html = renderToStaticMarkup(await detail());
-    expect(html).toContain('Сейчас нет свободного времени.');
+    expect(html).toContain('Сейчас нет свободного времени');
     const document = new DOMParser().parseFromString(html, 'text/html');
     expect(document.querySelector('#availability a[href="/demo/specialists"]')).not.toBeNull();
   });

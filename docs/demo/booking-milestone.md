@@ -25,8 +25,8 @@ To reproduce automated review, run `npm ci` then `npm run test:e2e:fixture`. Por
 
 ## Before a shared preview or publication
 
-1. Apply `supabase/migrations/202610260001_demo_feedback.sql` to an approved isolated Supabase preview backend. Migration is prepared but unapplied. Existing production tables are unchanged.
-2. Run gated feedback database tests with two distinct synthetic accounts and `TEST_FEEDBACK_DISPOSABLE=1`. The four cases validate real RLS/privileges, immutable records, invalid input, and concurrent first-insert uniqueness. The fixture backend cannot establish PostgreSQL enforcement. Docker was unavailable, so these checks were not run locally.
+1. Run `npm run db:migrate` against an approved isolated Neon database (a separate branch for Preview). The project has moved from Supabase to Neon and Better Auth, so the database starts from `db/migrations/0001_auth.sql`; the feedback table is `0003_demo_feedback.sql`. Nothing has been applied to a real Neon database yet.
+2. The feedback and booking database contracts (idempotent retries, immutable answers, invalid input, ownership) now run in the normal test suite on PGlite against the real migrations. PGlite handles one query at a time, so run the two-account booking race and the concurrent feedback insert once against a disposable Neon branch before release.
 3. Teammate review: Assem—UX; Zhanggir—acceptance; Ingkar—feedback questions; Nazerke—research alignment. No teammate messages have been sent.
 4. Physical-phone checklist remains pending: real iPhone Safari and Android Chrome; login and language switch; specialist selection and scrolling; keyboard/select operation; booking/reload/cancellation/history; feedback and failure retry; portrait/landscape layout and 44px touch targets. Record device/browser and observations before release approval.
 5. Get explicit approval before commit/push/PR and production publication under project guidance. No claim of unique-family pilot participation is derived from shared-account feedback.
